@@ -14,12 +14,23 @@ namespace DiamondInTheWater
     {
         public int Day
         {
-            get;set;
+            get;
+            set;
         }
 
         public Nation[] Nations
         {
             get { return nations; }
+        }
+
+        public List<DayInfo> DayStats
+        {
+            get { return storedDayStats; }
+        }
+
+        public DayInfo LastDayStats
+        {
+            get { return storedDayStats[storedDayStats.Count - 1]; }
         }
 
         public const int TOTAL_DAYS = 32;
@@ -90,7 +101,7 @@ namespace DiamondInTheWater
                 {
                     num = rand.Next(0, 3);
                 }
-                advantages[num] = 1 + 0.25f * i;
+                advantages[num] = 1 + i;
             }
             
             return advantages;
@@ -134,13 +145,20 @@ namespace DiamondInTheWater
             }
 
             // calculates the total GDP of the nation for that day
-            float consumerGoods = n.Chocolates + n.Phones + n.Shirts; // CONSUMPTION
+            float consumerGoods = n.Chocolates * Nation.CHOC_NEEDED + n.Phones * 
+                Nation.PHONE_NEEDED + n.Shirts * Nation.SHIRT_NEEDED; // CONSUMPTION
             float govSpending = 0f; // FISCAL POLICY AND GOVERNMENT SPENDING
-            float investment = 0f; // IMPLMENET INVESTMENT
+            float capitalGoods = n.Factories * Nation.FACTORY_NEEDED + n.Trucks * 
+                Nation.TRUCK_NEEDED + n.Tools * Nation.TOOL_NEEDED; // INVESTMENT
             float exports = 0f; // IMPLEMENT TRADING
             float imports = 0f; // IMPLEMENT IMPORTS
-            float GDP = consumerGoods + govSpending + investment + exports + imports;
-            storedDayStats.Add(new DayInfo(n.Production, n.Population, GDP));
+            float GDP = consumerGoods + govSpending + capitalGoods + exports + imports;
+            storedDayStats.Add(new DayInfo(n.Production, n.Population, n.Chocolates, n.Shirts,
+                n.Phones, n.Factories, n.Trucks, n.Tools, n.TradeChocolates, n.TradeShirts,
+                n.TradePhones, n.BoughtChocolates, n.BoughtShirts, n.BoughtPhones));
+
+            foreach (Nation nat in Nations)
+                nat.ResetTrade();
         }
 
         public void Initialize(ContentManager Content)
@@ -270,13 +288,29 @@ namespace DiamondInTheWater
 
     public struct DayInfo
     {
-        public float Production, Population, GDP;
+        public float Production, Population, ProducedChocolate, ProducedShirts,
+            ProducedPhones, ProducedFactories, ProducedTrucks, ProducedTools, TradeChocolate,
+            TradeShirt, TradePhone, BoughtChocolate, BoughtShirt, BoughtPhone;
 
-        public DayInfo(float production, float population, float gDP)
+        public DayInfo(float production, float population, float producedChocolate, float producedShirts, float producedPhones,
+            float producedFactories, float producedTrucks, float producedTools, float tradeChocolate, float tradeShirt, float tradePhone,
+            float boughtChocolate, float boughtShirt, float boughtPhone)
         {
             Production = production;
             Population = population;
-            GDP = gDP;
+
+            ProducedChocolate = producedChocolate;
+            ProducedShirts = producedShirts;
+            ProducedPhones = producedPhones;
+            ProducedFactories = producedFactories;
+            ProducedTrucks = producedTrucks;
+            ProducedTools = producedTools;
+            TradeChocolate = tradeChocolate;
+            TradeShirt = tradeShirt;
+            TradePhone = tradePhone;
+            BoughtChocolate = boughtChocolate;
+            BoughtPhone = boughtPhone;
+            BoughtShirt = boughtShirt;
         }
     }
 }

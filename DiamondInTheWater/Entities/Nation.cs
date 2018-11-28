@@ -12,6 +12,8 @@ namespace DiamondInTheWater.Entities
 
         public float FactoryAdvantage, ToolAdvantage, TruckAdvantage,
             PhoneAdvantage, ChocolateAdvantage, ShirtAdvantage;
+
+        public float TradeChocolates, TradePhones, TradeShirts, BoughtChocolates, BoughtPhones, BoughtShirts;
         public float QueuedFactories
         {
             get;
@@ -100,7 +102,13 @@ namespace DiamondInTheWater.Entities
 
         public float Production
         {
-            get { return Population + (Tools * TOOL_NEEDED + Factories * FACTORY_NEEDED + Trucks * TRUCK_NEEDED) / 200; }
+            get { return Population + (Tools * TOOL_NEEDED + Factories * FACTORY_NEEDED + Trucks * TRUCK_NEEDED) / 300 * (1 - Unemployment); }
+        }
+
+        public float Unemployment
+        {
+            get;
+            set;
         }
 
         public float QueuedGoods
@@ -113,8 +121,8 @@ namespace DiamondInTheWater.Entities
         public const float FACTORY_NEEDED = 200;
         public const float TRUCK_NEEDED = 100;
         public const float TOOL_NEEDED = 50;
-        public const float SHIRT_NEEDED = 50;
-        public const float CHOC_NEEDED = 30;
+        public const float SHIRT_NEEDED = 75;
+        public const float CHOC_NEEDED = 50;
         public const float PHONE_NEEDED = 100;
         private double populationPrecise;
 
@@ -123,16 +131,23 @@ namespace DiamondInTheWater.Entities
         /// </summary>
         public Nation(string name)
         {
+            Unemployment = 0.05f;
             Name = name;
-            populationPrecise = 16.0;
+            populationPrecise = 32.0;
+        }
+
+        public void ResetTrade()
+        {
+            BoughtChocolates = BoughtPhones = BoughtShirts = TradeChocolates = TradePhones = TradeShirts = 0f;
         }
 
         public bool IsGoodTrade(float theirChocolate, float theirPhone, float theirShirt,
             float yourChocolate, float yourPhone, float yourShirt)
         {
-            float tradeValue = (theirChocolate / ChocolateAdvantage + theirPhone
-                / PhoneAdvantage + theirShirt / ShirtAdvantage) - (yourChocolate
-                / ChocolateAdvantage + yourPhone / PhoneAdvantage + yourShirt / ShirtAdvantage);
+            float tradeValue = (theirChocolate / ChocolateAdvantage * CHOC_NEEDED + theirPhone
+                / PhoneAdvantage * PHONE_NEEDED + theirShirt / ShirtAdvantage * SHIRT_NEEDED) 
+                - (yourChocolate / ChocolateAdvantage * CHOC_NEEDED + yourPhone / PhoneAdvantage 
+                * PHONE_NEEDED + yourShirt / ShirtAdvantage * SHIRT_NEEDED);
             
             return tradeValue > 0;
         }
@@ -149,8 +164,9 @@ namespace DiamondInTheWater.Entities
 
         public void Progress(int Day)
         {
-            float x = Day / 25f;
-            populationPrecise += Math.Max(0.2, (MAX_POPULATION * .3 * Math.Exp(3 * x / 10 + 4) / Math.Pow((Math.Exp(3 * x / 10) + Math.Exp(4)), 2)));
+            float step = 50f;
+            float x = Day / step;
+            populationPrecise += (MAX_POPULATION * (Math.Exp(x) / (Math.Pow(Math.Exp(x) + 1, 2)))) / step;
 
             float queuedGoods = (float)(Math.Ceiling(QueuedFactories) / FactoryAdvantage + Math.Ceiling(QueuedPhones)
                 + Math.Ceiling(QueuedTrucks) / TruckAdvantage + Math.Ceiling(QueuedChocolates)
@@ -212,7 +228,6 @@ namespace DiamondInTheWater.Entities
             }
             if (QueuedShirts < 0)
                 QueuedShirts = 0;
-
         }
     }
 }
