@@ -61,6 +61,11 @@ namespace DiamondInTheWater.UserInterface
         /// </summary>
         public UIEvent OnClick;
 
+        /// <summary>
+        /// When the user right clicks on the component.
+        /// </summary>
+        public UIEvent OnRightClick;
+
         public UIEvent OnMouseEnter;
 
         public UIEvent OnMouseLeave;
@@ -86,6 +91,8 @@ namespace DiamondInTheWater.UserInterface
             {
                 if (InputManager.Instance.IsMouseClicked(MouseButton.LEFT))
                     OnClick?.Invoke(new UIEventArg(this));
+                else if (InputManager.Instance.IsMouseClicked(MouseButton.RIGHT))
+                    OnRightClick?.Invoke(new UIEventArg(this));
                 if (!IsHovering)
                 {
                     IsHovering = true;

@@ -127,6 +127,16 @@ namespace DiamondInTheWater.Entities
             populationPrecise = 16.0;
         }
 
+        public bool IsGoodTrade(float theirChocolate, float theirPhone, float theirShirt,
+            float yourChocolate, float yourPhone, float yourShirt)
+        {
+            float tradeValue = (theirChocolate / ChocolateAdvantage + theirPhone
+                / PhoneAdvantage + theirShirt / ShirtAdvantage) - (yourChocolate
+                / ChocolateAdvantage + yourPhone / PhoneAdvantage + yourShirt / ShirtAdvantage);
+            
+            return tradeValue > 0;
+        }
+
         public void DecideProduction()
         {
             QueuedChocolates += ChocolateAdvantage * Production;

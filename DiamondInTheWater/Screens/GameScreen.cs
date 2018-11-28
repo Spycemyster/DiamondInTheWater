@@ -50,12 +50,14 @@ namespace DiamondInTheWater.Screens
         private const float FADE_INTERVAL = 0.025f;
         private int selectedNation;
         private float chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2;
+        private bool isGoodTrade;
 
         /// <summary>
         /// Creates a new instance of the <c>GameScreen</c>.
         /// </summary>
         public GameScreen(Game1 game)
         {
+            isGoodTrade = false;
             selectedNation = 1;
             state = GameTransitionState.FADE_IN;
             isTransitioning = false;
@@ -201,14 +203,17 @@ namespace DiamondInTheWater.Screens
 
             tradeButtons[4] = new UIButton();
             tradeButtons[4].OnClick += addItemToTrade;
+            tradeButtons[4].OnRightClick += removeItemFromTrade;
             tradeButtons[4].Texture = Content.Load<Texture2D>("ChocolateIcon");
         
             tradeButtons[5] = new UIButton();
             tradeButtons[5].OnClick += addItemToTrade;
+            tradeButtons[5].OnRightClick += removeItemFromTrade;
             tradeButtons[5].Texture = Content.Load<Texture2D>("PhoneIcon");
 
             tradeButtons[6] = new UIButton();
             tradeButtons[6].OnClick += addItemToTrade;
+            tradeButtons[6].OnRightClick += removeItemFromTrade;
             tradeButtons[6].Texture = Content.Load<Texture2D>("ShirtIcon");
 
             tradeButtons[7] = new UIButton();
@@ -251,6 +256,36 @@ namespace DiamondInTheWater.Screens
                 else
                     shirtAdd2 = Math.Min(shirtAdd2 + 1, (int)n1.Shirts);
             }
+
+            isGoodTrade = n1.IsGoodTrade(chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2);
+        }
+        private void removeItemFromTrade(UIEventArg arg)
+        {
+            Nation n = world.GetPlayer();
+            Nation n1 = world.Nations[selectedNation];
+            if (arg.Component == tradeButtons[4])
+            {
+                if (isYourInventory)
+                    chocAdd = Math.Max(chocAdd - 1, 0);
+                else
+                    chocAdd2 = Math.Max(chocAdd2 - 1, 0);
+            }
+            else if (arg.Component == tradeButtons[5])
+            {
+                if (isYourInventory)
+                    phoneAdd = Math.Max(phoneAdd - 1, 0);
+                else
+                    phoneAdd2 = Math.Max(phoneAdd2 - 1, 0);
+            }
+            else if (arg.Component == tradeButtons[6])
+            {
+                if (isYourInventory)
+                    shirtAdd = Math.Max(shirtAdd - 1, 0);
+                else
+                    shirtAdd2 = Math.Max(shirtAdd2 - 1, 0);
+            }
+
+            isGoodTrade = n1.IsGoodTrade(chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2);
         }
 
         private void changeYourInventory(UIEventArg arg)
@@ -268,12 +303,22 @@ namespace DiamondInTheWater.Screens
 
         private void selectNation1(UIEventArg arg)
         {
+            if (selectedNation == 1)
+                return;
+            ResetTrade();
             selectedNation = 1;
+            Nation n1 = world.Nations[selectedNation];
+            isGoodTrade = n1.IsGoodTrade(chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2);
         }
 
         private void selectNation2(UIEventArg arg)
         {
+            if (selectedNation == 2)
+                return;
+            ResetTrade();
             selectedNation = 2;
+            Nation n1 = world.Nations[selectedNation];
+            isGoodTrade = n1.IsGoodTrade(chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2);
         }
 
         private void OnNextDayClick(UIEventArg arg)
@@ -364,8 +409,16 @@ namespace DiamondInTheWater.Screens
             }
 
             if (InputManager.Instance.KeyPressed(Keys.Escape))
+            {
+                ResetTrade();
                 form = UserInterfaceForms.GAMEWORLD;
+            }
 
+        }
+
+        private void ResetTrade()
+        {
+            chocAdd = chocAdd2 = phoneAdd = phoneAdd2 = shirtAdd = shirtAdd2 = 0;
         }
 
         /// <summary>
@@ -559,7 +612,7 @@ namespace DiamondInTheWater.Screens
                     int y = num0 / 5;
 
                     spriteBatch.Draw(goodIcons[3], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
-                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
+                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y + 8, height2, height2), Color.White);
 
                     num0++;
                 }
@@ -569,7 +622,7 @@ namespace DiamondInTheWater.Screens
                     int y = num0 / 5;
 
                     spriteBatch.Draw(goodIcons[4], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
-                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
+                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y + 8, height2, height2), Color.White);
 
                     num0++;
                 }
@@ -579,7 +632,40 @@ namespace DiamondInTheWater.Screens
                     int y = num0 / 5;
 
                     spriteBatch.Draw(goodIcons[5], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
-                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
+                        + height2 * (j - y * 5), fRect.Y + space * (y + 1) + height2 * y + 8, height2, height2), Color.White);
+
+                    num0++;
+                }
+
+                int theirSpace = fRect.Height / 2 + 16;
+                num0 = 0;
+                num1 = 0;
+                for (int j = num0; j < (int)chocAdd2 + num1; j++)
+                {
+                    int y = num0 / 5;
+
+                    spriteBatch.Draw(goodIcons[3], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
+                        + height2 * (j - y * 5), theirSpace + fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
+
+                    num0++;
+                }
+                num1 = num0;
+                for (int j = num0; j < (int)shirtAdd2 + num1; j++)
+                {
+                    int y = num0 / 5;
+
+                    spriteBatch.Draw(goodIcons[4], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
+                        + height2 * (j - y * 5), theirSpace + fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
+
+                    num0++;
+                }
+                num1 = num0;
+                for (int j = num0; j < (int)phoneAdd2 + num1; j++)
+                {
+                    int y = num0 / 5;
+
+                    spriteBatch.Draw(goodIcons[5], new Rectangle(fRect2.X + spacing2 * (j + 1 - y * 5)
+                        + height2 * (j - y * 5), theirSpace + fRect.Y + space * (y + 1) + height2 * y, height2, height2), Color.White);
 
                     num0++;
                 }
@@ -588,9 +674,14 @@ namespace DiamondInTheWater.Screens
             tradeButtons[7].Position = new Point(fRect.X + fRect.Width / 2 - 180,
                 fRect.Y + fRect.Height - 72);
 
-            foreach (UIButton but in tradeButtons)
+            string tradeText = (isGoodTrade) ? "This trade deal can work." : "This is not a fair trade deal.";
+            string tradeText2 = world.Nations[selectedNation].Name + ": " + tradeText;
+            Vector2 tradeTextSize = font.MeasureString(tradeText2);
+            spriteBatch.DrawString(font, tradeText2, new Vector2(fRect.X + 8, fRect.Y + fRect.Height - 72), Color.White);
+
+            foreach (UIButton butt in tradeButtons)
             {
-                but.Draw(spriteBatch);
+                butt.Draw(spriteBatch);
             }
 
         }
