@@ -23,14 +23,9 @@ namespace DiamondInTheWater
             get { return nations; }
         }
 
-        public List<DayInfo> DayStats
-        {
-            get { return storedDayStats; }
-        }
-
         public DayInfo LastDayStats
         {
-            get { return storedDayStats[storedDayStats.Count - 1]; }
+            get { return GetPlayer().DayStats[GetPlayer().DayStats.Count - 1]; }
         }
 
         public const int TOTAL_DAYS = 32;
@@ -39,7 +34,6 @@ namespace DiamondInTheWater
         private List<Factory> factories;
         private List<House> houses;
         private List<Person> persons;
-        private List<DayInfo> storedDayStats;
         private Random rand;
         private Texture2D islandTexture, blank, diamond;
         private Rectangle islandRectangle, worldBounds;
@@ -59,13 +53,14 @@ namespace DiamondInTheWater
             rand = new Random();
             factories = new List<Factory>();
             houses = new List<House>();
-            storedDayStats = new List<DayInfo>();
 
             // Add different countries to TRADE with
             nations = new Nation[3];
             nations[0] = new Nation("Pelkeyland");
             nations[1] = new Nation("Berkeley");
+            nations[1].hasAIAdvantage = true;
             nations[2] = new Nation("Sunnyvale");
+            nations[2].hasAIAdvantage = true;
             float[] consumerAdvantages = GenerateAdvantages();
             nations[0].ChocolateAdvantage = consumerAdvantages[0];
             nations[0].PhoneAdvantage = consumerAdvantages[1];
@@ -101,7 +96,7 @@ namespace DiamondInTheWater
                 {
                     num = rand.Next(0, 3);
                 }
-                advantages[num] = 1 + i;
+                advantages[num] = 0.5f + 0.25f * i;
             }
             
             return advantages;
@@ -141,21 +136,10 @@ namespace DiamondInTheWater
                 if (n != nations[i])
                     nations[i].DecideProduction();
 
-                nations[i].Progress(Day);
+                nations[i].ProgressProduction(Day);
+                nations[i].ProgressPopulation(Day);
+                nations[i].CalculateStatistics();
             }
-
-            // calculates the total GDP of the nation for that day
-            float consumerGoods = n.Chocolates * Nation.CHOC_NEEDED + n.Phones * 
-                Nation.PHONE_NEEDED + n.Shirts * Nation.SHIRT_NEEDED; // CONSUMPTION
-            float govSpending = 0f; // FISCAL POLICY AND GOVERNMENT SPENDING
-            float capitalGoods = n.Factories * Nation.FACTORY_NEEDED + n.Trucks * 
-                Nation.TRUCK_NEEDED + n.Tools * Nation.TOOL_NEEDED; // INVESTMENT
-            float exports = 0f; // IMPLEMENT TRADING
-            float imports = 0f; // IMPLEMENT IMPORTS
-            float GDP = consumerGoods + govSpending + capitalGoods + exports + imports;
-            storedDayStats.Add(new DayInfo(n.Production, n.Population, n.Chocolates, n.Shirts,
-                n.Phones, n.Factories, n.Trucks, n.Tools, n.TradeChocolates, n.TradeShirts,
-                n.TradePhones, n.BoughtChocolates, n.BoughtShirts, n.BoughtPhones));
 
             foreach (Nation nat in Nations)
                 nat.ResetTrade();
@@ -200,12 +184,12 @@ namespace DiamondInTheWater
             foreach (Person p in persons)
                 p.Update(gameTime);
 
-            while (Math.Ceiling(n.Population / 4) >= houses.Count)
+            while ((int)(n.Population / 4) >= houses.Count)
                 AddHouse();
-            while (Math.Floor(n.Population) >= persons.Count)
+            while ((int)(n.Population) >= persons.Count)
                 AddPerson();
 
-            while (Math.Floor(n.Factories) > factories.Count)
+            while ((int)n.Factories > factories.Count)
                 AddFactory();
         }
 
