@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 namespace DiamondInTheWater.Screens
 {
@@ -19,6 +20,8 @@ namespace DiamondInTheWater.Screens
         private enum UserInterfaceForms
         {
             END_DAY,
+
+            END_GAME,
 
             GAMEWORLD,
             
@@ -29,12 +32,6 @@ namespace DiamondInTheWater.Screens
             LOGISTICS,
         }
 
-        private enum EndDayState
-        {
-            GDP,
-            PRODUCTION,
-        }
-
         private enum GameTransitionState
         {
             FADE_IN,
@@ -43,21 +40,21 @@ namespace DiamondInTheWater.Screens
         }
 
         private GameTransitionState state;
-        private EndDayState edState;
         private UserInterfaceForms form;
         private bool isUiActive;
         private SpriteFont font, fontb;
         private Game1 game;
         private GameWorld world;
         private Map waterMap;
-        private Texture2D blank;
+        private Texture2D blank, pelkFrown, pelkSmile, mute, notMute, halfMute;
         private ContentManager Content;
         private List<float> vals;
         private UIButton[] gameworldBtns, productionBtns, tradeButtons;
-        private Texture2D[] goodIcons;
+        private MusicManager manager;
+        private Texture2D[] goodIcons, apIcons;
         private float opacity;
         private bool isTransitioning, isYourInventory;
-        private const float FADE_INTERVAL = 0.025f;
+        private const float FADE_INTERVAL = 0.05f;
         private int selectedNation;
         private float chocAdd, phoneAdd, shirtAdd, chocAdd2, phoneAdd2, shirtAdd2, timer;
         private bool isGoodTrade;
@@ -67,7 +64,6 @@ namespace DiamondInTheWater.Screens
         /// </summary>
         public GameScreen(Game1 game)
         {
-            edState = EndDayState.GDP;
             isGoodTrade = false;
             selectedNation = 1;
             state = GameTransitionState.FADE_IN;
@@ -77,6 +73,14 @@ namespace DiamondInTheWater.Screens
             isUiActive = true;
             isYourInventory = true;
             form = UserInterfaceForms.GAMEWORLD;
+            manager = new MusicManager();
+            MediaPlayer.Volume = 1.0f;
+        }
+
+        public void LoadGame()
+        {
+            WorldSave save = (WorldSave)GameSerializer.Deserialize("Save/Load.sav");
+            world.LoadGame(save);
         }
 
         /// <summary>
@@ -87,12 +91,24 @@ namespace DiamondInTheWater.Screens
         {
             this.Content = new ContentManager(Content.ServiceProvider, "Content");
             goodIcons = new Texture2D[6];
+            apIcons = new Texture2D[5];
             goodIcons[0] = Content.Load<Texture2D>("FactoryIcon");
             goodIcons[1] = Content.Load<Texture2D>("TruckIcon");
             goodIcons[2] = Content.Load<Texture2D>("ToolIcon");
             goodIcons[3] = Content.Load<Texture2D>("ChocolateIcon");
             goodIcons[4] = Content.Load<Texture2D>("ShirtIcon");
             goodIcons[5] = Content.Load<Texture2D>("PhoneIcon");
+            pelkFrown = Content.Load<Texture2D>("PelkeyFrown");
+            pelkSmile = Content.Load<Texture2D>("PelkeySmile");
+            mute = Content.Load<Texture2D>("Muted");
+            notMute = Content.Load<Texture2D>("NonMuted");
+            halfMute = Content.Load<Texture2D>("HalfMuted");
+            manager.Load(Content);
+
+            for (int i = 1; i <= 5; i++)
+            {
+                apIcons[i - 1] = Content.Load<Texture2D>("AP" + i);
+            }
 
             font = this.Content.Load<SpriteFont>("defaultFont");
             blank = this.Content.Load<Texture2D>("blank");
@@ -105,12 +121,13 @@ namespace DiamondInTheWater.Screens
             int space = (game.Width - 4 * 200) / 5;
 
             #region Game world form elements
-            gameworldBtns = new UIButton[4];
+            gameworldBtns = new UIButton[5];
             gameworldBtns[0] = new UIButton();
             gameworldBtns[1] = new UIButton();
             gameworldBtns[2] = new UIButton();
             gameworldBtns[3] = new UIButton();
-        
+            gameworldBtns[4] = new UIButton();
+
             gameworldBtns[0].Texture = blank;
             gameworldBtns[0].Background = Color.CornflowerBlue;
             gameworldBtns[0].Size = new Point(200, 70);
@@ -138,7 +155,14 @@ namespace DiamondInTheWater.Screens
             gameworldBtns[3].Position = new Point(space * 4 + 600, game.Height - 100);
             gameworldBtns[3].Font = fontb;
             gameworldBtns[3].OnClick += OnLogisticsClick;
-            gameworldBtns[3].Text = "Logistics";
+            gameworldBtns[3].Text = "Advisor";
+            gameworldBtns[4].Texture = notMute;
+            gameworldBtns[4].Background = Color.CornflowerBlue;
+            gameworldBtns[4].Size = new Point(22 * 3, 21 * 3);
+            gameworldBtns[4].Position = new Point(game.Width - 76, game.Height - 73);
+            gameworldBtns[4].Font = fontb;
+            gameworldBtns[4].Text = "";
+            gameworldBtns[4].OnClick += onToggleMute;
             #endregion
 
             #region Production form elements
@@ -235,6 +259,28 @@ namespace DiamondInTheWater.Screens
             tradeButtons[7].Text = "Trade";
             tradeButtons[7].Font = fontb;
             #endregion
+        }
+
+        private void onToggleMute(UIEventArg arg)
+        {
+            Texture2D texture = null;
+            if (MediaPlayer.Volume == 1.0f)
+            {
+                MediaPlayer.Volume = 0.5f;
+                texture = halfMute;
+            }
+            else if (MediaPlayer.Volume == 0.5f)
+            {
+                MediaPlayer.Volume = 0.0f;
+                texture = mute;
+            }
+            else
+            {
+                MediaPlayer.Volume = 1.0f;
+                texture = notMute;
+            }
+
+            arg.Component.Texture = texture;
         }
 
         private void makeTrade(UIEventArg arg)
@@ -394,6 +440,8 @@ namespace DiamondInTheWater.Screens
             Content.Unload();
         }
 
+        private bool isGameOver = false;
+
         /// <summary>
         /// Updates the instance fo the <c>GameScreen</c>.
         /// </summary>
@@ -401,6 +449,7 @@ namespace DiamondInTheWater.Screens
         public override void Update(GameTime gameTime)
         {
             timer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            manager.Update();
 
             Tile.Update(gameTime);
             world.Update(gameTime);
@@ -417,18 +466,18 @@ namespace DiamondInTheWater.Screens
                             button.Update(gameTime);
                         break;
                     case UserInterfaceForms.END_DAY:
-                        if (InputManager.Instance.IsMouseClicked(MouseButton.LEFT))
+                        if (InputManager.Instance.IsMouseClicked(MouseButton.RIGHT) ||
+                            InputManager.Instance.IsMouseClicked(MouseButton.LEFT))
                         {
-                            if (edState.Equals(EndDayState.GDP))
+                            if (world.Day < GameWorld.RULE_DAYS)
                             {
-                                edState = EndDayState.PRODUCTION;
-                            }
-                            else
-                            {
-                                edState = EndDayState.GDP;
                                 isUiActive = false;
                                 state = GameTransitionState.FADE_OUT;
                                 form = UserInterfaceForms.GAMEWORLD;
+                            }
+                            else
+                            {
+                                isGameOver = true;
                             }
                         }
                         break;
@@ -452,13 +501,17 @@ namespace DiamondInTheWater.Screens
                         {
                             world.ProgressDay();
                             isUiActive = true;
+                            WorldSave save = world.CreateSave();
+                            GameSerializer.Serialize(save, "Save/Load.sav");
                         }
                         form = UserInterfaceForms.END_DAY;
                         break;
                     case GameTransitionState.FADE_IN:
                         opacity += FADE_INTERVAL;
                         if (opacity > 1)
+                        {
                             state = GameTransitionState.DO_STUFF;
+                        }
                         break;
                     case GameTransitionState.FADE_OUT:
                         if (opacity <= 0)
@@ -492,49 +545,111 @@ namespace DiamondInTheWater.Screens
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend,
                 SamplerState.PointWrap, null, null, null, null);
-            waterMap.Draw(spriteBatch);
 
-            world.Draw(spriteBatch);
-
-            Rectangle formRectangle = new Rectangle(16, 16, game.Width - 32, game.Height - 32);
-
-            spriteBatch.Draw(blank, new Rectangle(0, 0, game.Width, game.Height), Color.Black * opacity);
-            if (isUiActive)
+            if (!isGameOver)
             {
-                switch (form)
+                waterMap.Draw(spriteBatch);
+
+                world.Draw(spriteBatch);
+
+                Rectangle formRectangle = new Rectangle(16, 16, game.Width - 32, game.Height - 32);
+
+                spriteBatch.Draw(blank, new Rectangle(0, 0, game.Width, game.Height), Color.Black * opacity);
+                if (isUiActive)
                 {
-                    case UserInterfaceForms.GAMEWORLD:
-                        DrawGameWorld(formRectangle, spriteBatch);
-                        if (!world.GetPlayer().IsProducing())
-                        {
-                            string prodwar = "You are currently not producing anything";
-                            float opacity = (float)(Math.Cos(timer / 400f) * 0.2f + 0.8f);
-                            Vector2 prodwarSize = fontb.MeasureString(prodwar);
-                            spriteBatch.DrawString(fontb, prodwar, new Vector2(game.Width - prodwarSize.X - 10, 10), Color.Black * opacity * 0.4f);
-                            spriteBatch.DrawString(fontb, prodwar, new Vector2(game.Width - prodwarSize.X - 8, 8), Color.White * opacity);
-                        }
-                        else
-                            timer = 0f;
-                        break;
-                    case UserInterfaceForms.END_DAY:
-                        DrawEndDayScreen(spriteBatch);
-                        break;
+                    switch (form)
+                    {
+                        case UserInterfaceForms.GAMEWORLD:
+                            DrawGameWorld(formRectangle, spriteBatch);
+                            if (!world.GetPlayer().IsProducing())
+                            {
+                                string prodwar = "You are currently not producing anything";
+                                float opacity = (float)(Math.Cos(timer / 400f) * 0.2f + 0.8f);
+                                Vector2 prodwarSize = fontb.MeasureString(prodwar);
+                                spriteBatch.DrawString(fontb, prodwar, new Vector2(game.Width - prodwarSize.X - 10, 10), Color.Black * opacity * 0.4f);
+                                spriteBatch.DrawString(fontb, prodwar, new Vector2(game.Width - prodwarSize.X - 8, 8), Color.White * opacity);
+                            }
+                            else
+                                timer = 0f;
+                            break;
+                        case UserInterfaceForms.END_DAY:
+                            DrawEndDayScreen(spriteBatch);
+                            break;
 
-                    case UserInterfaceForms.LOGISTICS:
-                        DrawLogistics(formRectangle, spriteBatch);
-                        break;
+                        case UserInterfaceForms.LOGISTICS:
+                            DrawLogistics(formRectangle, spriteBatch);
+                            break;
 
-                    case UserInterfaceForms.PRODUCTION:
-                        DrawProduction(formRectangle, spriteBatch);
-                        break;
+                        case UserInterfaceForms.PRODUCTION:
+                            DrawProduction(formRectangle, spriteBatch);
+                            break;
 
-                    case UserInterfaceForms.TRADE:
-                        DrawTrade(formRectangle, spriteBatch);
-                        break;
+                        case UserInterfaceForms.TRADE:
+                            DrawTrade(formRectangle, spriteBatch);
+                            break;
+                    }
                 }
+
             }
+            else
+            {
+                Nation player = world.GetPlayer();
+                string gameOverText = "Game Over!";
+                //int gdp = (int)(player.CalculateTotal(Goods.CHOCOLATE) + player.CalculateTotal(Goods.FACTORY)
+                //    + player.CalculateTotal(Goods.PHONE) + player.CalculateTotal(Goods.SHIRT)
+                //    + player.CalculateTotal(Goods.TOOL) + player.CalculateTotal(Goods.TRUCK));
+                int gdp = 5458;
+                string gdptext = "Your leadership ended with an economy worth $" + gdp;
+                Vector2 gameOvTextSize = fontb.MeasureString(gameOverText);
+                Vector2 gdpTextSize = font.MeasureString(gdptext);
+                spriteBatch.DrawString(fontb, gameOverText, 
+                    new Vector2(game.Width / 2 - gameOvTextSize.X / 2, 16), Color.Black);
+                spriteBatch.DrawString(font, gdptext, new Vector2(game.Width / 2 - gdpTextSize.X / 2, 32 + gameOvTextSize.Y), Color.Black);
+                string pelkText = "";
 
-
+                Texture2D pelkTexture = null;
+                Texture2D endTexture = null;
+                if (gdp >= 8000)
+                {
+                    pelkTexture = pelkSmile;
+                    pelkText = "You're the one!";
+                    endTexture = apIcons[4];
+                }
+                else if (gdp < 8000 && gdp > 7000)
+                {
+                    pelkTexture = pelkSmile;
+                    pelkText = "You've got potential";
+                    endTexture = apIcons[3];
+                }
+                else if (gdp <= 7000 && gdp > 6000)
+                {
+                    pelkTexture = pelkSmile;
+                    pelkText = "Congratulation, you passed the class.";
+                    endTexture = apIcons[2];
+                }
+                else if (gdp <= 6000 && gdp > 5000)
+                {
+                    pelkTexture = pelkFrown;
+                    pelkText = "Don't worry. At The People's Republic of Berkeley,\n we give you shovel. It's glorious!";
+                    endTexture = apIcons[1];
+                }
+                else
+                {
+                    pelkTexture = pelkFrown;
+                    pelkText = "You were supposed to be the one, not get a one...";
+                    endTexture = apIcons[0];
+                }
+                float scale = game.Width / endTexture.Width;
+                Rectangle endRect = new Rectangle((int)(game.Width / 2 - endTexture.Width * scale / 2),
+                    (int)(game.Height / 2 - endTexture.Height * scale / 2), (int)(endTexture.Width * scale),
+                    (int)(endTexture.Height * scale));
+                spriteBatch.Draw(endTexture, endRect, Color.White);
+                
+                spriteBatch.Draw(pelkTexture, new Rectangle(328, endRect.Y + endRect.Height / 2 + 64,
+                    pelkTexture.Width, pelkTexture.Height), Color.White);
+                spriteBatch.DrawString(fontb, pelkText, new Vector2(336 + pelkTexture.Width, endRect.Height / 4 + 
+                    endRect.Y + pelkTexture.Height), Color.Black);
+            }
             spriteBatch.End();
         }
 
@@ -546,128 +661,204 @@ namespace DiamondInTheWater.Screens
             float phone = player.Production / Nation.PHONE_NEEDED * player.PhoneAdvantage;
             float shirt = player.Production / Nation.SHIRT_NEEDED * player.ShirtAdvantage;
 
-            Graph ppChocPhone = new Graph(game.GraphicsDevice, new Point(200, 200))
+            int dim = 200;
+            int sep = (game.Height - 3 * dim) / 4;
+            string highestAdvantage = "";
+            string advice = "";
+            if (player.ChocolateAdvantage == 1)
             {
-                Position = new Vector2(200, 200),
-                MaxValue = phone
+                highestAdvantage = "chocolates";
+            }
+            else if (player.PhoneAdvantage == 1)
+            {
+                highestAdvantage = "phones";
+            }
+            else if (player.ShirtAdvantage == 1)
+            {
+                highestAdvantage = "shirts";
+            }
+            advice = "You have the highest comparative advantage for producing " + highestAdvantage
+                + " I advise you\n spend most of your production producing them and trading them for other goods.\n";
+
+            string ppcSummary = "According to our production possibility graphs, by " +
+                "specializing and focusing all production\nand resources towards producing:\n\n" +
+                "Chocolates -> You can make " + choc + " each day. \n" + "Phones -> You can make "
+                + phone + " each day. \n" + "Shirts -> You can make " + shirt + " each day.\n";
+
+            string warning = "Be careful about producing too much of one item. \nThe less scarce an item is\nThe less it's worth";
+
+            string text = "Economic Advisor:\n\n" + advice + "\n\n" + ppcSummary + "\n\n" + warning;
+
+            spriteBatch.DrawString(font, text, new Vector2(3 * dim, 64), Color.White);
+
+            Graph ppChocPhone = new Graph(game.GraphicsDevice, new Point(dim, dim))
+            {
+                Position = new Vector2(200, dim + sep),
+                MaxValue = phone * 1.5f,
             };
             List<float> ppChocPhoneVals = new List<float>
             {
                 phone,
                 0
             };
-            ppChocPhone.Draw(ppChocPhoneVals, Color.Silver);
-            Graph ppChocShirt = new Graph(game.GraphicsDevice, new Point(200, 200))
+            Graph ppChocShirt = new Graph(game.GraphicsDevice, new Point(dim, dim))
             {
-                MaxValue = shirt,
-                Position = new Vector2(200, 500)
+                MaxValue = shirt * 1.5f,
+                Position = new Vector2(200, dim * 2 + 2 * sep)
             };
             List<float> ppChocShirtVals = new List<float>
             {
                 shirt,
                 0
             };
-            ppChocShirt.Draw(ppChocShirtVals, Color.White);
-            Graph ppPhoneShirt = new Graph(game.GraphicsDevice, new Point(200, 200))
+            Graph ppPhoneShirt = new Graph(game.GraphicsDevice, new Point(dim, dim))
             {
-                Position = new Vector2(200, 800),
-                MaxValue = shirt
+                Position = new Vector2(200, dim * 3 + 3 * sep),
+                MaxValue = shirt * 1.5f
             };
             List<float> ppPhoneShirtVals = new List<float>
             {
                 shirt,
                 0
             };
+            int width = 5;
+            string ppChocText = "Chocolates (" + choc + ")";
+            string ppPhoneText = "Phones (" + phone + ")";
+            string ppShirtText = "Shirts (" + shirt + ")";
+            spriteBatch.DrawString(font, ppPhoneText, new Vector2(3 * dim / 2 - 
+                font.MeasureString(ppPhoneText).X / 2, ppChocPhone.Position.Y + 6 + width), Color.White);
+            spriteBatch.DrawString(font, ppShirtText, new Vector2(3 * dim / 2 - 
+                font.MeasureString(ppShirtText).X / 2, ppPhoneShirt.Position.Y + 6 + width), Color.White);
+            spriteBatch.DrawString(font, ppShirtText, new Vector2(3 * dim / 2 - 
+                font.MeasureString(ppShirtText).X / 2, ppChocShirt.Position.Y + 6 + width), Color.White);
+            spriteBatch.DrawString(font, ppChocText, new Vector2(200 - font.MeasureString(ppChocText).X - 6,
+                ppChocPhone.Position.Y - dim / 2 - font.MeasureString(ppChocText).Y / 2), Color.White);
+            spriteBatch.DrawString(font, ppPhoneText, new Vector2(200 - font.MeasureString(ppPhoneText).X - 6,
+                ppPhoneShirt.Position.Y - dim / 2 - font.MeasureString(ppChocText).Y / 2), Color.White);
+            spriteBatch.DrawString(font, ppChocText, new Vector2(200 - font.MeasureString(ppChocText).X - 6,
+                ppChocShirt.Position.Y - dim / 2 - font.MeasureString(ppChocText).Y / 2), Color.White);
+            //spriteBatch.DrawString(font, "Phones", new Vector2(), Color.White);
+            //spriteBatch.DrawString(font, "Chocolates", new Vector2(), Color.White);
+            DrawBorder(new Rectangle(200 - width, -width + sep, 200 + 2 * width, 200 + 2 *
+                width), width, Color.White, spriteBatch);
+            DrawBorder(new Rectangle(200 - width, sep * 2 + dim - width, 200 + 2 * width,
+                200 + 2 * width), width, Color.White, spriteBatch);
+            DrawBorder(new Rectangle(200 - width, 3 * sep + 2 * dim - width, 200 + 2 * width,
+                200 + 2 * width), width, Color.White, spriteBatch);
+            //DrawBorder(new Rectangle(200, 300, 200, 200), width, Color.White, spriteBatch);
+            //DrawBorder(new Rectangle(200, 600, 200, 200), width, Color.White, spriteBatch);
+            ppChocPhone.Draw(ppChocPhoneVals, Color.Silver);
             ppPhoneShirt.Draw(ppPhoneShirtVals, Color.White);
+            ppChocShirt.Draw(ppChocShirtVals, Color.White);
         }
 
         private void DrawEndDayScreen(SpriteBatch spriteBatch)
         {
             Nation player = world.GetPlayer();
-            string dayText = "Day " + world.Day + " - " + world.GetPlayer().Name;
+            string dayText = (world.Day < GameWorld.RULE_DAYS) ? "Day " + world.Day + " of " 
+                + GameWorld.RULE_DAYS : "Final Day";
+            dayText += " - " + world.GetPlayer().Name;
             Vector2 dayTextSize = fontb.MeasureString(dayText);
             spriteBatch.DrawString(fontb, dayText, new Vector2(game.Width / 2 - dayTextSize.X / 2, 16), Color.White);
             DayInfo info = world.LastDayStats;
+            
+            int chocProduced = (int)info.ProducedChocolate;
+            int chocProducedM = (int)player.CalculateValue(Goods.CHOCOLATE, 0, chocProduced);
+            int chocBought = (int)info.BoughtChocolate;
+            int chocBoughtM = (int)player.CalculateValue(Goods.CHOCOLATE, chocProduced, chocProduced + chocBought);
+            int chocSold = (int)info.TradeChocolate;
+            int chocSoldM = (int)player.CalculateValue(Goods.CHOCOLATE, chocProduced +
+                chocBought, chocProduced + chocBought + chocSold);
+            int shirtProduced = (int)info.ProducedShirts;
+            int shirtProducedM = (int)player.CalculateValue(Goods.SHIRT, 0, shirtProduced);
+            int shirtBought = (int)info.BoughtShirt;
+            int shirtBoughtM = (int)player.CalculateValue(Goods.SHIRT, shirtProduced, shirtProduced + shirtBought);
+            int shirtSold = (int)info.TradeShirt;
+            int shirtSoldM = (int)player.CalculateValue(Goods.SHIRT, shirtProduced +
+                shirtBought, shirtProduced + shirtBought + shirtSold);
+            int phoneProduced = (int)info.ProducedPhones;
+            int phoneProducedM = (int)player.CalculateValue(Goods.PHONE, 0, phoneProduced);
+            int phoneBought = (int)info.BoughtPhone;
+            int phoneBoughtM = (int)player.CalculateValue(Goods.PHONE, phoneProduced, phoneProduced + phoneBought);
+            int phoneSold = (int)info.TradePhone;
+            int phoneSoldM = (int)player.CalculateValue(Goods.PHONE, phoneProduced +
+                phoneBought, phoneProduced + phoneBought + phoneSold);
+            //(int)(chocProduced * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
+            //(int)(chocBought * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
+            //(int)(chocSold * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
 
-            if (edState == EndDayState.GDP)
-            {
-                int chocProduced = (int)info.ProducedChocolate;
-                int chocProducedM = (int)(chocProduced * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
-                int chocBought = (int)info.BoughtChocolate;
-                int chocBoughtM = (int)(chocBought * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
-                int chocSold = (int)info.TradeChocolate;
-                int chocSoldM = (int)(chocSold * Nation.CHOC_NEEDED / player.ChocolateAdvantage);
+            //int shirtProduced = (int)info.ProducedShirts;
+            //int shirtProducedM = (int)(shirtProduced * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
+            //int shirtBought = (int)info.BoughtShirt;
+            //int shirtBoughtM = (int)(shirtBought * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
+            //int shirtSold = (int)info.TradeShirt;
+            //int shirtSoldM = (int)(shirtSold * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
 
-                int shirtProduced = (int)info.ProducedShirts;
-                int shirtProducedM = (int)(shirtProduced * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
-                int shirtBought = (int)info.BoughtShirt;
-                int shirtBoughtM = (int)(shirtBought * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
-                int shirtSold = (int)info.TradeShirt;
-                int shirtSoldM = (int)(shirtSold * Nation.SHIRT_NEEDED / player.ShirtAdvantage);
+            //int phoneProduced = (int)info.ProducedPhones;
+            //int phoneProducedM = (int)(phoneProduced * Nation.PHONE_NEEDED / player.PhoneAdvantage);
+            //int phoneBought = (int)info.BoughtPhone;
+            //int phoneBoughtM = (int)(phoneBought * Nation.PHONE_NEEDED / player.PhoneAdvantage);
+            //int phoneSold = (int)info.TradePhone;
+            //int phoneSoldM = (int)(phoneSold * Nation.PHONE_NEEDED / player.PhoneAdvantage);
+            string consumertext = "Chocolates\nOwned: "
+                + chocProduced + " = $" + chocProducedM +
+                "\nSold: " + chocSold + " = $" + chocSoldM + "\nBought: " + chocBought + " = -$"
+                + chocBoughtM + "\n"
+                + "Shirts\nOwned: " + shirtProduced + " = $" + shirtProducedM +
+                "\nSold: " + shirtSold + " = $" + shirtSoldM + "\nBought: " + shirtBought + " = -$"
+                + shirtBoughtM + "\n"
+                + "Phones\nOwned: " + phoneProduced + " = $" + phoneProducedM +
+                "\nSold: " + phoneSold + " = $" + phoneSoldM + "\nBought: " + phoneBought + " = -$"
+                + phoneBoughtM;
 
-                int phoneProduced = (int)info.ProducedPhones;
-                int phoneProducedM = (int)(phoneProduced * Nation.PHONE_NEEDED / player.PhoneAdvantage);
-                int phoneBought = (int)info.BoughtPhone;
-                int phoneBoughtM = (int)(phoneBought * Nation.PHONE_NEEDED / player.PhoneAdvantage);
-                int phoneSold = (int)info.TradePhone;
-                int phoneSoldM = (int)(phoneSold * Nation.PHONE_NEEDED / player.PhoneAdvantage);
-                string consumertext = "Chocolates\nOwned: " + chocProduced + " = $" + chocProducedM +
-                    "\nSold: " + chocSold + " = $" + chocSoldM + "\nBought: " + chocBought + " = -$"
-                    + chocBoughtM + "\n"
-                    + "Shirts\nOwned: " + shirtProduced + " = $" + shirtProducedM +
-                    "\nSold: " + shirtSold + " = $" + shirtSoldM + "\nBought: " + shirtBought + " = -$"
-                    + shirtBoughtM + "\n"
-                    + "Phones\nOwned: " + phoneProduced + " = $" + phoneProducedM +
-                    "\nSold: " + phoneSold + " = $" + phoneSoldM + "\nBought: " + phoneBought + " = -$"
-                    + phoneBoughtM;
+            int factories = (int)(info.ProducedFactories);
+            int factoryM = (int)player.CalculateValue(Goods.FACTORY, 0, factories);//(int)(factories * Nation.FACTORY_NEEDED);
+            int trucks = (int)(info.ProducedTrucks);
+            int truckM = (int)player.CalculateValue(Goods.TRUCK, 0, trucks); //(int)(trucks * Nation.TRUCK_NEEDED);
+            int tools = (int)(info.ProducedTools);
+            int toolM = (int)player.CalculateValue(Goods.TOOL, 0, tools);//(int)(tools * Nation.TOOL_NEEDED);
 
-                int factories = (int)(info.ProducedFactories);
-                int factoryM = (int)(factories * Nation.FACTORY_NEEDED);
-                int trucks = (int)(info.ProducedTrucks);
-                int truckM = (int)(trucks * Nation.TRUCK_NEEDED);
-                int tools = (int)(info.ProducedTools);
-                int toolM = (int)(tools * Nation.TOOL_NEEDED);
+            string capitalText = "Factories: " + factories + " = $" + factoryM +
+                "\n\n\n\n\n\nTrucks: " + trucks + " = $" + truckM + "\n\n\n\n\nTools: " + tools + " = $" + toolM;
+            Vector2 capSize = font.MeasureString(capitalText);
+            Vector2 conSize = font.MeasureString(consumertext);
+            float totalWidth = capSize.X + conSize.X + 32;
+            float x = game.Width / 2 - totalWidth / 2;
 
-                string capitalText = "Factories: " + factories + " = $" + factoryM +
-                    "\n\n\n\n\n\nTrucks: " + trucks + " = $" + truckM + "\n\n\n\n\nTools: " + tools + " = $" + toolM;
-                Vector2 capSize = font.MeasureString(capitalText);
-                Vector2 conSize = font.MeasureString(consumertext);
-                float totalWidth = capSize.X + conSize.X + 32;
-                float x = game.Width / 2 - totalWidth / 2;
+            spriteBatch.DrawString(font, consumertext, new Vector2(x, dayTextSize.Y + 16), Color.White);
+            spriteBatch.DrawString(font, capitalText, new Vector2(x + conSize.X + 32, dayTextSize.Y + 16), Color.White);
 
-                spriteBatch.DrawString(font, consumertext, new Vector2(x, dayTextSize.Y + 16), Color.White);
-                spriteBatch.DrawString(font, capitalText, new Vector2(x + conSize.X + 32, dayTextSize.Y + 16), Color.White);
+            //int gdp = (int)((shirtProducedM + chocProducedM + phoneProducedM + factoryM + truckM
+            //    + toolM - chocSoldM - shirtSoldM - phoneSoldM + chocBoughtM + shirtBoughtM + phoneBoughtM));
+            int gdp = (int)(player.CalculateTotal(Goods.CHOCOLATE) + player.CalculateTotal(Goods.FACTORY)
+                + player.CalculateTotal(Goods.PHONE) + player.CalculateTotal(Goods.SHIRT)
+                + player.CalculateTotal(Goods.TOOL) + player.CalculateTotal(Goods.TRUCK));
 
-                int gdp = (int)((shirtProducedM + chocProducedM + phoneProducedM + factoryM + truckM
-                    + toolM - chocSoldM - shirtSoldM - phoneSoldM + chocBoughtM + shirtBoughtM + phoneBoughtM));
+            string gdpText = "Real Gross Domestic Production = C + I + G + Xn = $"
+                + (shirtProducedM + chocProducedM + phoneProducedM) + " + $" +
+                (factoryM + truckM + toolM) + " + $0 + ($" + (chocBoughtM + shirtBoughtM + phoneBoughtM)
+                + " - $" + (chocSoldM + shirtSoldM + phoneSoldM) + ") = $" + gdp;
+            Vector2 gdpTextSize = font.MeasureString(gdpText);
+            spriteBatch.DrawString(font, gdpText, new Vector2(game.Width / 2 - gdpTextSize.X / 2
+                , game.Height - gdpTextSize.Y), Color.White);
+            DayInfo currentDay = player.DayStats[player.DayStats.Count - 1];
+            DayInfo prevDay = player.DayStats[player.DayStats.Count - 2];
+            float productionGrowth = currentDay.Production - prevDay.Production;
+            float populationGrowth = (int)(currentDay.Population - prevDay.Population);
+            float unemployment = player.Unemployment;
 
-                string gdpText = "Real Gross Domestic Production = C + I + G + Xn = $"
-                    + (shirtProducedM + chocProducedM + phoneProducedM) + " + $" +
-                    (factoryM + truckM + toolM) + " + $0 + ($" + (chocBoughtM + shirtBoughtM + phoneBoughtM)
-                    + " - $" + (chocSoldM + shirtSoldM + phoneSoldM) + ") = $" + gdp;
-                Vector2 gdpTextSize = font.MeasureString(gdpText);
-                spriteBatch.DrawString(font, gdpText, new Vector2(game.Width / 2 - gdpTextSize.X / 2
-                    , game.Height - gdpTextSize.Y), Color.White);
-            }
-            else if (edState == EndDayState.PRODUCTION)
-            {
-                DayInfo currentDay = player.DayStats[player.DayStats.Count - 1];
-                DayInfo prevDay = player.DayStats[player.DayStats.Count - 2];
-                float productionGrowth = currentDay.Production - prevDay.Production;
-                float populationGrowth = (int)(currentDay.Population - prevDay.Population);
-                float unemployment = player.Unemployment;
-
-                string prodGrow = (productionGrowth > 0) ? "+" + productionGrowth : "-" + productionGrowth;
-                if (productionGrowth == 0)
-                    prodGrow = "None";
-                string popGrow = (populationGrowth > 0) ? "+" + populationGrowth : "-" + populationGrowth;
-                if (populationGrowth == 0)
-                    popGrow = "None";
-                string endDayText = "Production Growth: " + prodGrow + "\n";
-                endDayText += "Population Growth: " + popGrow + "\n";
-                endDayText += "Unemployment Rate: %" + (unemployment * 100f);
-                spriteBatch.DrawString(font, endDayText, new Vector2(16, 32 + dayTextSize.Y), Color.White);
-            }
+            string prodGrow = (productionGrowth > 0) ? "+" + productionGrowth : "-" + productionGrowth;
+            if (productionGrowth == 0)
+                prodGrow = "None";
+            string popGrow = (populationGrowth > 0) ? "+" + populationGrowth : "-" + populationGrowth;
+            if (populationGrowth == 0)
+                popGrow = "None";
+            string endDayText = "Production Growth: " + prodGrow + "\n";
+            endDayText += "Population Growth: " + popGrow + "\n";
+            endDayText += "Unemployment Rate: %" + (unemployment * 100f);
+            Vector2 endDaytextSize = font.MeasureString(endDayText);
+            spriteBatch.DrawString(font, endDayText, new Vector2(game.Width / 2 - endDaytextSize.X / 2,
+                conSize.Y + 72), Color.White);
         }
 
         private void DrawGameWorld(Rectangle formRectangle, SpriteBatch spriteBatch)
@@ -787,17 +978,16 @@ namespace DiamondInTheWater.Screens
                     fRect.Y + 64 + (i + 1) * (space) + height * i);
 
                 tradeButtons[4 + i].Size = new Point(height, height);
-                int sel = 0;
-                if (!isYourInventory)
-                {
-                    sel = selectedNation;
-                }
+                int sel = selectedNation;
+
                 // choc, ph, sh
                 Nation nat = world.Nations[sel];
+                
                 string text = "";
                 if (i == 0)
                 {
-                    text = "Chocolate\nQuantity: " + (int)nat.Chocolates;
+                    int chocolates = (isYourInventory) ? (int)n.Chocolates : (int)nat.Chocolates;
+                    text = "Chocolate\nQuantity: " + chocolates;
                     if (nat != n)
                     {
                         text += "\nTheir Advantage: " + nat.ChocolateAdvantage + 
@@ -806,7 +996,8 @@ namespace DiamondInTheWater.Screens
                 }
                 else if (i == 1)
                 {
-                    text = "Phone\nQuantity: " + (int)nat.Phones;
+                    int phones = (isYourInventory) ? (int)n.Phones : (int)nat.Phones;
+                    text = "Phone\nQuantity: " + phones;
                     if (nat != n)
                     {
                         text += "\nTheir Advantage: " + nat.PhoneAdvantage +
@@ -815,7 +1006,8 @@ namespace DiamondInTheWater.Screens
                 }
                 else if (i == 2)
                 {
-                    text = "Shirt\nQuantity: " + (int)nat.Shirts;
+                    int shirts = (isYourInventory) ? (int)n.Shirts : (int)nat.Shirts;
+                    text = "Shirt\nQuantity: " + shirts;
                     if (nat != n)
                     {
                         text += "\nTheir Advantage: " + nat.ShirtAdvantage +
@@ -900,9 +1092,29 @@ namespace DiamondInTheWater.Screens
                 fRect.Y + fRect.Height - 72);
 
             string tradeText = (isGoodTrade) ? "This trade deal can work." : "This is not a fair trade deal.";
-            int moneyMade = (int)((chocAdd2 - chocAdd) * Nation.CHOC_NEEDED / n.ChocolateAdvantage
-                + (phoneAdd2 - phoneAdd) * Nation.PHONE_NEEDED / n.PhoneAdvantage 
-                + (shirtAdd2 - shirtAdd) * Nation.SHIRT_NEEDED / n.ShirtAdvantage);
+            //int moneyMade = (int)((chocAdd2 - chocAdd) * Nation.CHOC_NEEDED / n.ChocolateAdvantage
+            //    + (phoneAdd2 - phoneAdd) * Nation.PHONE_NEEDED / n.PhoneAdvantage 
+            //    + (shirtAdd2 - shirtAdd) * Nation.SHIRT_NEEDED / n.ShirtAdvantage);
+            Nation player = world.GetPlayer();
+
+            int dChoc = (int)(chocAdd2 - chocAdd);
+            int dPhone = (int)(phoneAdd2 - phoneAdd);
+            int dShirt = (int)(shirtAdd2 - shirtAdd);
+
+            double chocMoney = (dChoc >= 0) ? player.CalculateValue(Goods.CHOCOLATE,
+                (int)player.Chocolates, (int)player.Chocolates + dChoc) :
+                -player.CalculateValue(Goods.CHOCOLATE, (int)player.Chocolates + dChoc,
+                (int)player.Chocolates);
+            double phoneMoney = (dPhone >= 0) ? player.CalculateValue(Goods.PHONE,
+                (int)player.Phones, (int)player.Phones + dPhone) :
+                -player.CalculateValue(Goods.PHONE, (int)player.Phones + dPhone,
+                (int)player.Phones);
+            double shirtMoney = (dShirt >= 0) ? player.CalculateValue(Goods.SHIRT,
+                (int)player.Shirts, (int)player.Shirts + dShirt) :
+                -player.CalculateValue(Goods.SHIRT, (int)player.Shirts + dShirt,
+                (int)player.Shirts);
+
+            int moneyMade = (int)Math.Round(chocMoney + phoneMoney + shirtMoney);
             string tradeText2 = world.Nations[selectedNation].Name + ": " + tradeText;
             Vector2 tradeTextSize = font.MeasureString(tradeText2);
             Color c = (moneyMade > 0) ? Color.LimeGreen : Color.Red;
@@ -933,9 +1145,11 @@ namespace DiamondInTheWater.Screens
             Vector2 consumerPos = fontb.MeasureString("Consumer");
 
             spriteBatch.DrawString(fontb, "Capital", new Vector2(formRectangle.X + 
-                formRectangle.Width / 4 - capitalPos.X / 2, formRectangle.Y + titlePos.Y * 2), Color.White);
+                formRectangle.Width / 4 - capitalPos.X / 2, formRectangle.Y
+                + titlePos.Y * 2), Color.White);
             spriteBatch.DrawString(fontb, "Consumer", new Vector2(formRectangle.X + 3 *
-                formRectangle.Width / 4 - consumerPos.X / 2, formRectangle.Y + titlePos.Y * 2), Color.White);
+                formRectangle.Width / 4 - consumerPos.X / 2, formRectangle.Y 
+                + titlePos.Y * 2), Color.White);
 
             int spacing = 72;
             int height = (activeRect.Height - 4 * spacing) / 3;
@@ -946,19 +1160,26 @@ namespace DiamondInTheWater.Screens
                 Rectangle rect0 = new Rectangle(activeRect.X + 16, activeRect.Y
                     + spacing * (i + 1) + i * height, width, height);
                 Rectangle rect1 = new Rectangle(activeRect.X + activeRect.Width
-                    - width - 16, activeRect.Y + spacing * (i + 1) + i * height, width, height);
+                    - width - 16, activeRect.Y + spacing * (i + 1) + i * height, 
+                    width, height);
                 productionBtns[i].Size = new Point(buttonDim, buttonDim);
-                productionBtns[i].Position = new Point(rect0.X + rect0.Width - buttonDim - 8, rect0.Y + 8);
+                productionBtns[i].Position = new Point(rect0.X + rect0.Width - 
+                    buttonDim - 8, rect0.Y + 8);
                 productionBtns[i + 3].Size = new Point(buttonDim, buttonDim);
-                productionBtns[i + 3].Position = new Point(rect1.X + rect1.Width - 8 - buttonDim, rect1.Y + 8);
+                productionBtns[i + 3].Position = new Point(rect1.X + rect1.Width - 8 -
+                    buttonDim, rect1.Y + 8);
                 productionBtns[i + 6].Size = new Point(buttonDim, buttonDim);
-                productionBtns[i + 6].Position = new Point(rect0.X + rect0.Width - buttonDim * 2 - 16, rect0.Y + 8);
+                productionBtns[i + 6].Position = new Point(rect0.X + rect0.Width -
+                    buttonDim * 2 - 16, rect0.Y + 8);
                 productionBtns[i + 9].Size = new Point(buttonDim, buttonDim);
-                productionBtns[i + 9].Position = new Point(rect1.X + rect1.Width - buttonDim * 2 - 16, rect1.Y + 8);
+                productionBtns[i + 9].Position = new Point(rect1.X + rect1.Width - 
+                    buttonDim * 2 - 16, rect1.Y + 8);
                 spriteBatch.Draw(blank, rect0, Color.DarkGreen);
-                spriteBatch.Draw(goodIcons[i], new Rectangle(rect0.X + 2, rect0.Y + 2, rect0.Height - 4, rect0.Height - 4), Color.White);
+                spriteBatch.Draw(goodIcons[i], new Rectangle(rect0.X + 2, rect0.Y + 2,
+                    rect0.Height - 4,rect0.Height - 4), Color.White);
                 spriteBatch.Draw(blank, rect1, Color.DarkGreen);
-                spriteBatch.Draw(goodIcons[i + 3], new Rectangle(rect1.X + 2, rect1.Y + 2, rect0.Height - 4, rect0.Height - 4), Color.White);
+                spriteBatch.Draw(goodIcons[i + 3], new Rectangle(rect1.X + 2, rect1.Y + 2,
+                    rect0.Height - 4, rect0.Height - 4), Color.White);
 
                 // itemname
                 // quantity: #
@@ -966,43 +1187,61 @@ namespace DiamondInTheWater.Screens
                 string capitalText = "";
                 if (i == 0)
                 {
-                    int percent = (int)((n.QueuedFactories - (int)n.QueuedFactories) * 100);
-                    capitalText = "Factory\nAdvantage: " + n.FactoryAdvantage + "\nQuantity: " + (int)n.Tools + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedFactories) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedFactories > 0 && n.QueuedFactories != 
+                        (int)n.QueuedFactories) ? (int)((1 - (n.QueuedFactories 
+                        - (int)n.QueuedFactories)) * 100) + "%" : "None";
+                    capitalText = "Factory\nQuantity: "
+                        + (int)n.Factories + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedFactories) + "\nCompleted: " + percent;
                 }
                 else if (i == 1)
                 {
-                    int percent = (int)((n.QueuedTrucks - (int)n.QueuedTrucks) * 100);
-                    capitalText = "Truck\nAdvantage: " + n.TruckAdvantage + "\nQuantity: " + (int)n.Trucks + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedTrucks) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedTrucks > 0 && n.QueuedTrucks != 
+                        (int)n.QueuedTrucks) ? "" + (int)((1 - (n.QueuedTrucks 
+                        - (int)n.QueuedTrucks)) * 100) + "%": "None";
+                    capitalText = "Truck\nQuantity: " 
+                        + (int)n.Trucks + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedTrucks) + "\nCompleted: " + percent;
                 }
                 else if (i == 2)
                 {
-                    int percent = (int)((n.QueuedTools - (int)n.QueuedTools) * 100);
-                    capitalText = "Set of Tools\nAdvantage: " + n.ToolAdvantage + "\nQuantity: " + (int)n.Tools + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedTools) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedTools > 0 && n.QueuedTools 
+                        != (int)n.QueuedTools) ? (int)((1 - (n.QueuedTools
+                        - (int)n.QueuedTools)) * 100) + "%" : "None";
+                    capitalText = "Set of Tools\nQuantity: " + (int)n.Tools + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedTools) + "\nCompleted: " + percent;
                 }
 
-                spriteBatch.DrawString(font, capitalText, new Vector2(rect0.X + height + 4, productionBtns[i].Position.Y), Color.White);
+                spriteBatch.DrawString(font, capitalText, new Vector2(rect0.X + height + 4,
+                    productionBtns[i].Position.Y), Color.White);
 
                 string consumerText = "";
                 if (i == 0)
                 {
-                    int percent = (int)((n.QueuedChocolates - (int)n.QueuedChocolates) * 100);
-                    consumerText = "Chocolate\nAdvantage: " + n.ChocolateAdvantage + "\nQuantity: " + (int)n.Chocolates + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedChocolates) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedChocolates > 0 && n.QueuedChocolates != 
+                        (int)n.QueuedChocolates) ? (int)((1 - (n.QueuedChocolates
+                        - (int)n.QueuedChocolates)) * 100) + "%": "None";
+                    consumerText = "Chocolate\nAdvantage: " + n.ChocolateAdvantage + 
+                        "\nQuantity: " + (int)n.Chocolates + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedChocolates) + "\nCompleted: " + percent;
                 }
                 else if (i == 1)
                 {
-                    int percent = (int)((n.QueuedShirts - (int)n.QueuedShirts) * 100);
-                    consumerText = "Shirt\nAdvantage: " + n.ShirtAdvantage+ "\nQuantity: " + (int)n.Shirts + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedShirts) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedShirts > 0 && n.QueuedShirts != (int)n.QueuedShirts)
+                        ? (int)((1 - (n.QueuedShirts
+                        - (int)n.QueuedShirts)) * 100) + "%" : "None";
+                    consumerText = "Shirt\nAdvantage: " + n.ShirtAdvantage+ "\nQuantity: "
+                        + (int)n.Shirts + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedShirts) + "\nCompleted: " + percent;
                 }
                 else if (i == 2)
                 {
-                    int percent = (int)((n.QueuedPhones - (int)n.QueuedPhones) * 100);
-                    consumerText = "Phone\nAdvantage: " + n.PhoneAdvantage + "\nQuantity: " + (int)n.Phones + "\nQueued: " +
-                        (int)Math.Ceiling(n.QueuedPhones) + "\nCompleted: " + percent + "%";
+                    string percent = (n.QueuedPhones > 0 && n.QueuedPhones 
+                        != (int)n.QueuedPhones) ? (int)((1 - (n.QueuedPhones 
+                        - (int)n.QueuedPhones)) * 100) + "%" : "None";
+                    consumerText = "Phone\nAdvantage: " + n.PhoneAdvantage + "\nQuantity: " 
+                        + (int)n.Phones + "\nQueued: " +
+                        (int)Math.Ceiling(n.QueuedPhones) + "\nCompleted: " + percent;
                 }
 
                 spriteBatch.DrawString(font, consumerText, new Vector2(rect1.X + height + 4, 

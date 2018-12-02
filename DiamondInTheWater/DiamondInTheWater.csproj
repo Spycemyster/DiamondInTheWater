@@ -46,16 +46,20 @@
     <Compile Include="Entities\Items.cs" />
     <Compile Include="Entities\Nation.cs" />
     <Compile Include="Entities\Person.cs" />
+    <Compile Include="Entities\Truck.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameManager.cs" />
+    <Compile Include="GameSerializer.cs" />
     <Compile Include="GameWorld.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="InputManager.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="MusicManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="Screens\GameScreen.cs" />
+    <Compile Include="Screens\MenuScreen.cs" />
     <Compile Include="Sprite.cs" />
     <Compile Include="SpriteBatchExtensions.cs" />
     <Compile Include="UserInterface\UIButton.cs" />
@@ -70,7 +74,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\1.mp3" />
+    <Content Include="Content\2.mp3" />
+    <Content Include="Content\3.mp3" />
+    <Content Include="Content\4.mp3" />
+    <Content Include="Content\AP1.png" />
+    <Content Include="Content\AP2.png" />
+    <Content Include="Content\AP3.png" />
+    <Content Include="Content\AP4.png" />
+    <Content Include="Content\AP5.png" />
+    <Content Include="Content\Berkeley.png" />
     <Content Include="Content\blank.png" />
+    <Content Include="Content\HalfMuted.png" />
+    <Content Include="Content\IMAG0284.jpg" />
+    <Content Include="Content\IMG_20181130_111210.jpg" />
+    <Content Include="Content\Menu.png" />
+    <Content Include="Content\Music.txt" />
+    <Content Include="Content\Muted.png" />
+    <Content Include="Content\NonMuted.png" />
+    <Content Include="Content\PelkeyFrown.png" />
+    <Content Include="Content\PelkeySmile.png" />
     <Content Include="Content\PlaceholderIcon.png" />
     <Content Include="Content\diamond.png" />
     <Content Include="Content\Down.png" />
@@ -83,6 +106,8 @@
     <Content Include="Content\Island.png" />
     <Content Include="Content\PersonLeft.png" />
     <Content Include="Content\PersonRight.png" />
+    <Content Include="Content\ShirtIcon.png" />
+    <Content Include="Content\Sun.png" />
     <Content Include="Content\Tool.png" />
     <Content Include="Content\ToolIcon.png" />
     <Content Include="Content\Truck.png" />

@@ -12,6 +12,11 @@ namespace DiamondInTheWater
 {
     public class GameWorld
     {
+        /// <summary>
+        /// How many days you have until the end
+        /// </summary>
+        public const int RULE_DAYS = 60;
+
         public int Day
         {
             get;
@@ -27,8 +32,6 @@ namespace DiamondInTheWater
         {
             get { return GetPlayer().DayStats[GetPlayer().DayStats.Count - 1]; }
         }
-
-        public const int TOTAL_DAYS = 32;
 
         private Texture2D factoryTexture, houseTexture;
         private List<Factory> factories;
@@ -57,9 +60,18 @@ namespace DiamondInTheWater
             // Add different countries to TRADE with
             nations = new Nation[3];
             nations[0] = new Nation("Pelkeyland");
-            nations[1] = new Nation("Berkeley");
+            nations[0].Chocolates = 2;
+            nations[0].Phones = 2;
+            nations[0].Shirts = 2;
+            nations[1] = new Nation("The People's Republic of Berkeley");
+            nations[1].Chocolates = 2;
+            nations[1].Phones = 2;
+            nations[1].Shirts = 2;
             nations[1].hasAIAdvantage = true;
-            nations[2] = new Nation("Sunnyvale");
+            nations[2] = new Nation("The Sunnyvale Union");
+            nations[2].Chocolates = 2;
+            nations[2].Phones = 2;
+            nations[2].Shirts = 2;
             nations[2].hasAIAdvantage = true;
             float[] consumerAdvantages = GenerateAdvantages();
             nations[0].ChocolateAdvantage = consumerAdvantages[0];
@@ -73,15 +85,24 @@ namespace DiamondInTheWater
             nations[2].ShirtAdvantage = consumerAdvantages[1];
 
             float[] capitalAdvantages = GenerateAdvantages();
-            nations[0].FactoryAdvantage = capitalAdvantages[0];
-            nations[0].TruckAdvantage = capitalAdvantages[1];
-            nations[0].ToolAdvantage = capitalAdvantages[2];
-            nations[1].FactoryAdvantage = capitalAdvantages[1];
-            nations[1].TruckAdvantage = capitalAdvantages[2];
-            nations[1].ToolAdvantage = capitalAdvantages[0];
-            nations[2].FactoryAdvantage = capitalAdvantages[2];
-            nations[2].TruckAdvantage = capitalAdvantages[0];
-            nations[2].ToolAdvantage = capitalAdvantages[1];
+            //nations[0].FactoryAdvantage = capitalAdvantages[0];
+            //nations[0].TruckAdvantage = capitalAdvantages[1];
+            //nations[0].ToolAdvantage = capitalAdvantages[2];
+            //nations[1].FactoryAdvantage = capitalAdvantages[1];
+            //nations[1].TruckAdvantage = capitalAdvantages[2];
+            //nations[1].ToolAdvantage = capitalAdvantages[0];
+            //nations[2].FactoryAdvantage = capitalAdvantages[2];
+            //nations[2].TruckAdvantage = capitalAdvantages[0];
+            //nations[2].ToolAdvantage = capitalAdvantages[1];
+            nations[0].FactoryAdvantage = 1;
+            nations[0].TruckAdvantage = 1;
+            nations[0].ToolAdvantage = 1;
+            nations[1].FactoryAdvantage = 1;
+            nations[1].TruckAdvantage = 1;
+            nations[1].ToolAdvantage = 1;
+            nations[2].FactoryAdvantage = 1;
+            nations[2].TruckAdvantage = 1;
+            nations[2].ToolAdvantage = 1;
         }
 
         private float[] GenerateAdvantages()
@@ -184,8 +205,9 @@ namespace DiamondInTheWater
             foreach (Person p in persons)
                 p.Update(gameTime);
 
-            while ((int)(n.Population / 4) >= houses.Count)
+            while ((int)(n.Population / 4.2f) >= houses.Count)
                 AddHouse();
+
             while ((int)(n.Population) >= persons.Count)
                 AddPerson();
 
@@ -268,18 +290,52 @@ namespace DiamondInTheWater
             }
 
         }
+
+        public void LoadGame(WorldSave save)
+        {
+            nations = save.Nations;
+            Day = save.Day;
+        }
+
+        public WorldSave CreateSave()
+        {
+            WorldSave save = new WorldSave(nations, Day);
+            return save;
+        }
     }
 
+    [Serializable]
+    public struct WorldSave
+    {
+        public Nation[] Nations;
+        public int Day;
+
+        public WorldSave(Nation[] nations, int day)
+        {
+            Nations = nations;
+            Day = day;
+        }
+    }
+
+    [Serializable]
     public struct DayInfo
     {
         public float Production, Population, ProducedChocolate, ProducedShirts,
             ProducedPhones, ProducedFactories, ProducedTrucks, ProducedTools, TradeChocolate,
-            TradeShirt, TradePhone, BoughtChocolate, BoughtShirt, BoughtPhone;
+            TradeShirt, TradePhone, BoughtChocolate, BoughtShirt, BoughtPhone, TotalShirts, TotalChocolates,
+            TotalPhones, TotalFactory, TotalTrucks, TotalTools;
 
-        public DayInfo(float production, float population, float producedChocolate, float producedShirts, float producedPhones,
+        public DayInfo(float tS, float tC, float tP, float tF, float tT, float tTo, float production, float population, float producedChocolate, float producedShirts, float producedPhones,
             float producedFactories, float producedTrucks, float producedTools, float tradeChocolate, float tradeShirt, float tradePhone,
             float boughtChocolate, float boughtShirt, float boughtPhone)
         {
+            TotalShirts = tS;
+            TotalChocolates = tC;
+            TotalPhones = tP;
+            TotalFactory = tF;
+            TotalTrucks = tT;
+            TotalTools = tTo;
+
             Production = production;
             Population = population;
 

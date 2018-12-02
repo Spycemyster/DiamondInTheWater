@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace DiamondInTheWater
 {
@@ -14,6 +15,10 @@ namespace DiamondInTheWater
         [STAThread]
         static void Main()
         {
+            if (!Directory.Exists("Save"))
+            {
+                Directory.CreateDirectory("Save");
+            }
             using (var game = new Game1())
                 game.Run();
         }

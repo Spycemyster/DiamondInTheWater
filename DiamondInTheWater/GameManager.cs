@@ -33,6 +33,11 @@ namespace DiamondInTheWater
         private Game1 game;
         private Screen screen;
 
+        public Screen Screen
+        {
+            get { return screen; }
+        }
+
         /// <summary>
         /// Loads and initializes the <c>GameManager</c>.
         /// </summary>
@@ -40,7 +45,22 @@ namespace DiamondInTheWater
         public void Load(Game1 game)
         {
             this.game = game;
-            screen = new GameScreen(game);
+            ChangeScreen(ScreenState.MENU);
+        }
+
+        public void ChangeScreen(ScreenState state)
+        {
+            screen?.Unload();
+            switch (state)
+            {
+                case ScreenState.GAME:
+                    screen = new GameScreen(game);
+                    break;
+                case ScreenState.MENU:
+                    screen = new MenuScreen(game);
+                    break;
+            }
+
             screen.Initialize(game.Content);
         }
 
@@ -62,5 +82,11 @@ namespace DiamondInTheWater
         {
             screen?.Draw(spriteBatch);
         }
+    }
+
+    public enum ScreenState
+    {
+        GAME,
+        MENU,
     }
 }

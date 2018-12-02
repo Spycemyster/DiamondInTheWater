@@ -36,7 +36,7 @@ namespace DiamondInTheWater
 
             double ratio = 16.0 / 9.0;
 
-            int height = 854;
+            int height = 900;
             int width = (int)(ratio * height);
 
             graphics.PreferredBackBufferWidth = width;
@@ -89,8 +89,11 @@ namespace DiamondInTheWater
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Delete))
                 Exit();
 
-            InputManager.Instance.Update();
-            GameManager.GetInstance().Update(gameTime);
+            if (IsActive)
+            {
+                InputManager.Instance.Update();
+                GameManager.GetInstance().Update(gameTime);
+            }
 
             base.Update(gameTime);
         }
@@ -101,7 +104,7 @@ namespace DiamondInTheWater
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.White);
 
             GameManager.GetInstance().Draw(spriteBatch);
 

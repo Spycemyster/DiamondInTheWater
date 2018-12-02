@@ -15,9 +15,9 @@ namespace DiamondInTheWater.Entities
         #endregion
 
         #region Consumer Goods
-        BED,
+        CHOCOLATE,
         SHIRT,
-        PENCIL,
+        PHONE,
         #endregion
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiamondInTheWater.Entities
 {
+    [Serializable]
     public class Nation
     {
         public readonly string Name;
@@ -130,7 +131,9 @@ namespace DiamondInTheWater.Entities
 
         public float QueuedGoods
         {
-            get { return QueuedChocolates + QueuedFactories + QueuedPhones + QueuedShirts + QueuedTools + QueuedTrucks; }
+            get { return (float)(Math.Ceiling(QueuedChocolates) + Math.Ceiling(QueuedFactories) + 
+                    Math.Ceiling(QueuedPhones) + Math.Ceiling(QueuedShirts) + 
+                    Math.Ceiling(QueuedTools) + Math.Ceiling(QueuedTrucks)); }
         }
         
         public const float FACTORY_PRODUCTION = 200f;
@@ -159,7 +162,7 @@ namespace DiamondInTheWater.Entities
             Unemployment = 0.05f;
             Name = name;
             populationPrecise = 32.0;
-            DayStats.Add(new DayInfo(Production, (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            DayStats.Add(new DayInfo(0, 0, 0, 0, 0, 0,Production, (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
             hasAIAdvantage = false;
         }
 
@@ -189,12 +192,12 @@ namespace DiamondInTheWater.Entities
 
         public void DecideProduction()
         {
-            QueuedChocolates += (ChocolateAdvantage + 1) * Production / 1.5f;
-            QueuedPhones += (PhoneAdvantage + 1) * Production / 1.5f;
-            QueuedShirts += (ShirtAdvantage + 1) * Production / 1.5f;
-            QueuedFactories += (FactoryAdvantage + 1) * Production / 1.5f;
-            QueuedTools += ToolAdvantage * Production / 1.5f;
-            QueuedTrucks += TruckAdvantage * Production / 1.5f;
+            QueuedChocolates += (float)Math.Pow(ChocolateAdvantage, 3) * Production / 1.5f;
+            QueuedPhones += (float)Math.Pow(PhoneAdvantage, 3) * Production / 1.5f;
+            QueuedShirts += (float)Math.Pow(ShirtAdvantage , 3) * Production / 1.5f;
+            QueuedFactories += FactoryAdvantage * Production / 2f;
+            QueuedTools += ToolAdvantage * Production / 2f;
+            QueuedTrucks += TruckAdvantage * Production / 2f;
         }
 
         public double InflationMult
@@ -220,19 +223,16 @@ namespace DiamondInTheWater.Entities
             float exports = 0f; // IMPLEMENT TRADING
             float imports = 0f; // IMPLEMENT IMPORTS
             float GDP = consumerGoods + govSpending + capitalGoods + exports + imports;
-            DayStats.Add(new DayInfo(Production, Population, Chocolates, Shirts,
+            DayStats.Add(new DayInfo(Shirts, Chocolates, Phones, Factories, Trucks, Tools,
+                Production, Population, Chocolates, Shirts,
                 Phones, Factories, Trucks, Tools, TradeChocolates, TradeShirts,
                 TradePhones, BoughtChocolates, BoughtShirts, BoughtPhones));
             Console.WriteLine(Population);
         }
 
-        public float CalculateHapiness()
-        {
-            double chocHap = Math.Log(Chocolates);
-            double phoneHap = Math.Log(Phones);
-            double shirtHap = Math.Log(Shirts);
-
-            return (float)(Math.Max(chocHap + phoneHap + shirtHap, 1)) * (1 - RealUnemployment);
+        public float CalculateHappiness()
+        { 
+            return (float)(Math.Max(Math.Log(Chocolates * Phones * Shirts), 1)) * (1 - RealUnemployment) * 0.5f;
         }
 
         public float ChocolateValue(float choc)
@@ -310,23 +310,91 @@ namespace DiamondInTheWater.Entities
         {
             float step = 30f;
             float x = Day / step;
-            float hapiness = CalculateHapiness();
+            float happiness = CalculateHappiness();
             populationPrecise += MAX_POPULATION * (Math.Exp(x) /
-                (Math.Pow(Math.Exp(x) + 1, 2))) / step * hapiness;
+                (Math.Pow(Math.Exp(x) + 1, 2))) / step * happiness;
+        }
+
+        public double CalculateValue(Goods good, int initial, int final)
+        {
+            double prod = 0;
+            double adv = 0;
+            switch (good)
+            {
+                case Goods.TOOL:
+                    prod = TOOL_NEEDED;
+                    adv = ToolAdvantage;
+                    break;
+                case Goods.FACTORY:
+                    prod = FACTORY_NEEDED;
+                    adv = FactoryAdvantage;
+                    break;
+                case Goods.TRUCK:
+                    prod = TRUCK_NEEDED;
+                    adv = TruckAdvantage;
+                    break;
+                case Goods.CHOCOLATE:
+                    prod = CHOC_NEEDED;
+                    adv = ChocolateAdvantage;
+                    break;
+                case Goods.SHIRT:
+                    prod = SHIRT_NEEDED;
+                    adv = ShirtAdvantage;
+                    break;
+                case Goods.PHONE:
+                    prod = PHONE_NEEDED;
+                    adv = PhoneAdvantage;
+                    break;
+            }
+            double value = 0;
+            for (int i = 0; i < final - initial; i++)
+            {
+                value += (Math.Pow(2, .1) * prod) / Math.Pow(i + initial + 2, .1);
+            }
+
+            return value / adv;
+        }
+
+        public double CalculateTotal(Goods good)
+        {
+            int goods = 0;
+            switch (good)
+            {
+                case Goods.TOOL:
+                    goods = (int)Tools;
+                    break;
+                case Goods.FACTORY:
+                    goods = (int)Factories;
+                    break;
+                case Goods.TRUCK:
+                    goods = (int)Trucks;
+                    break;
+                case Goods.CHOCOLATE:
+                    goods = (int)Chocolates;
+                    break;
+                case Goods.SHIRT:
+                    goods = (int)Shirts;
+                    break;
+                case Goods.PHONE:
+                    goods = (int)Phones;
+                    break;
+            }
+            return CalculateValue(good, 0, goods);
         }
 
         public void ProgressProduction(int Day)
         {
-            float queuedGoods = (float)(Math.Ceiling(QueuedFactories) / FactoryAdvantage + Math.Ceiling(QueuedPhones)
-                + Math.Ceiling(QueuedTrucks) / TruckAdvantage + Math.Ceiling(QueuedChocolates)
-                + Math.Ceiling(QueuedShirts) + Math.Ceiling(QueuedTools) / ToolAdvantage);
+            //float queuedGoods = (float)(Math.Ceiling(QueuedFactories) / FactoryAdvantage + Math.Ceiling(QueuedPhones)
+            //    + Math.Ceiling(QueuedTrucks) / TruckAdvantage + Math.Ceiling(QueuedChocolates)
+            //    + Math.Ceiling(QueuedShirts) + Math.Ceiling(QueuedTools) / ToolAdvantage);
 
-            float dividedProd = Production / queuedGoods;
+            float dividedProd = Production / QueuedGoods;
 
             if (QueuedFactories > 0)
             {
                 float delta = (float)(dividedProd / FACTORY_NEEDED * Math.Ceiling(QueuedFactories)) * FactoryAdvantage;
-                Factories += (int)(QueuedFactories) - (int)(QueuedFactories - delta);
+                //Factories += (int)(QueuedFactories) - (int)(QueuedFactories - delta);
+                Factories += delta;
                 QueuedFactories -= delta;
             }
             if (QueuedFactories < 0)
@@ -335,7 +403,8 @@ namespace DiamondInTheWater.Entities
             if (QueuedTrucks > 0)
             {
                 float delta = (float)(dividedProd / TRUCK_NEEDED * Math.Ceiling(QueuedTrucks)) * TruckAdvantage;
-                Trucks += (int)(QueuedTrucks) - (int)(QueuedTrucks - delta);
+                //Trucks += (int)(QueuedTrucks) - (int)(QueuedTrucks - delta);
+                Trucks += delta;
                 QueuedTrucks -= delta;
             }
             if (QueuedTrucks < 0)
@@ -343,8 +412,8 @@ namespace DiamondInTheWater.Entities
             if (QueuedTools > 0)
             {
                 float delta = (float)(dividedProd / TOOL_NEEDED * Math.Ceiling(QueuedTools)) * ToolAdvantage;
-                Tools += (int)(QueuedTools) - (int)(QueuedTools - delta);
-
+                //Tools += (int)(QueuedTools) - (int)(QueuedTools - delta);
+                Tools += delta;
                 QueuedTools -= delta;
             }
             if (QueuedTools < 0)
@@ -353,7 +422,8 @@ namespace DiamondInTheWater.Entities
             if (QueuedChocolates > 0)
             {
                 float delta = (float)(dividedProd / CHOC_NEEDED * Math.Ceiling(QueuedChocolates)) * ChocolateAdvantage;
-                Chocolates += (int)(QueuedChocolates) - (int)(QueuedChocolates - delta);
+                //Chocolates += (int)(QueuedChocolates) - (int)(QueuedChocolates - delta);
+                Chocolates += delta;
                 QueuedChocolates -= delta;
             }
             if (QueuedChocolates < 0)
@@ -362,7 +432,8 @@ namespace DiamondInTheWater.Entities
             if (QueuedPhones > 0)
             {
                 float delta = (float)(dividedProd / PHONE_NEEDED * Math.Ceiling(QueuedPhones)) * PhoneAdvantage;
-                Phones += (int)(QueuedPhones) - (int)(QueuedPhones - delta);
+                //Phones += (int)(QueuedPhones) - (int)(QueuedPhones - delta);
+                Phones += delta;
                 QueuedPhones -= delta;
             }
             if (QueuedPhones < 0)
@@ -371,7 +442,8 @@ namespace DiamondInTheWater.Entities
             if (QueuedShirts > 0)
             {
                 float delta = (float)(dividedProd / SHIRT_NEEDED * Math.Ceiling(QueuedShirts)) * ShirtAdvantage;
-                Shirts += (int)(QueuedShirts) - (int)(QueuedShirts - delta);
+                //Shirts += (int)(QueuedShirts) - (int)(QueuedShirts - delta);
+                Shirts += delta;
 
                 QueuedShirts -= delta;
             }

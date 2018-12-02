@@ -119,8 +119,8 @@ namespace DiamondInTheWater
             if (values.Count < 2)
                 return;
 
-            float xScale = this.Size.X / (float)values.Count;
-            float yScale = this.Size.Y / MaxValue;
+            float xScale = Size.X / (float)values.Count;
+            float yScale = Size.Y / MaxValue;
 
             _scale = new Vector2(xScale, yScale);
             UpdateWorld();
