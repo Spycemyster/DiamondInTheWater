@@ -1,7 +1,7 @@
 # DiamondInTheWater
 <h2><b>Releases</b></h2>
 
-<a href="https://github.com/Gertyerteg/DiamondInTheWater/raw/master/Release.zip">Download Version 1.0</a>
+<a href="https://github.com/Gertyerteg/DiamondInTheWater/raw/master/DiamondInTheWater.zip">Download Version 1.0</a>
 
 <h2><b>Background</b></h2>
 
