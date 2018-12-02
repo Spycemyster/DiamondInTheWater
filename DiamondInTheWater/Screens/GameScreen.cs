@@ -595,10 +595,9 @@ namespace DiamondInTheWater.Screens
             {
                 Nation player = world.GetPlayer();
                 string gameOverText = "Game Over!";
-                //int gdp = (int)(player.CalculateTotal(Goods.CHOCOLATE) + player.CalculateTotal(Goods.FACTORY)
-                //    + player.CalculateTotal(Goods.PHONE) + player.CalculateTotal(Goods.SHIRT)
-                //    + player.CalculateTotal(Goods.TOOL) + player.CalculateTotal(Goods.TRUCK));
-                int gdp = 5458;
+                int gdp = (int)(player.CalculateTotal(Goods.CHOCOLATE) + player.CalculateTotal(Goods.FACTORY)
+                    + player.CalculateTotal(Goods.PHONE) + player.CalculateTotal(Goods.SHIRT)
+                    + player.CalculateTotal(Goods.TOOL) + player.CalculateTotal(Goods.TRUCK));
                 string gdptext = "Your leadership ended with an economy worth $" + gdp;
                 Vector2 gameOvTextSize = fontb.MeasureString(gameOverText);
                 Vector2 gdpTextSize = font.MeasureString(gdptext);
@@ -609,25 +608,25 @@ namespace DiamondInTheWater.Screens
 
                 Texture2D pelkTexture = null;
                 Texture2D endTexture = null;
-                if (gdp >= 8000)
+                if (gdp >= 10000)
                 {
                     pelkTexture = pelkSmile;
                     pelkText = "You're the one!";
                     endTexture = apIcons[4];
                 }
-                else if (gdp < 8000 && gdp > 7000)
+                else if (gdp < 10000 && gdp > 9000)
                 {
                     pelkTexture = pelkSmile;
                     pelkText = "You've got potential";
                     endTexture = apIcons[3];
                 }
-                else if (gdp <= 7000 && gdp > 6000)
+                else if (gdp <= 9000 && gdp > 8000)
                 {
                     pelkTexture = pelkSmile;
                     pelkText = "Congratulation, you passed the class.";
                     endTexture = apIcons[2];
                 }
-                else if (gdp <= 6000 && gdp > 5000)
+                else if (gdp <= 8000 && gdp > 6000)
                 {
                     pelkTexture = pelkFrown;
                     pelkText = "Don't worry. At The People's Republic of Berkeley,\n we give you shovel. It's glorious!";

@@ -1,5 +1,6 @@
 ﻿using DiamondInTheWater;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -33,6 +34,7 @@ namespace DiamondInTheWater
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            //Content = new ResourceContentManager(Services, Resources.ResourceManager);
 
             double ratio = 16.0 / 9.0;
 

@@ -148,7 +148,7 @@ namespace DiamondInTheWater
 
             Day++;
 
-            hasDiamond = (rand.Next(0, 100) < 2);
+            hasDiamond = (rand.Next(0, 100) < 40);
 
             //populationPrecise += (MAX_POPULATION * Math.Exp(Day)) / Math.Pow(1 + Math.Exp(Day) , 2);
             
