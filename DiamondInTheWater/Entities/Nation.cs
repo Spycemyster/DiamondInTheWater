@@ -113,7 +113,7 @@ namespace DiamondInTheWater.Entities
             get { float realProd = (int)Population + 
                     ((int)Tools * TOOL_NEEDED + (int)Factories * FACTORY_NEEDED 
                     + (int)Trucks * TRUCK_NEEDED) / 300 * (1 - Unemployment) + 40f;
-                float adProd = (hasAIAdvantage) ? realProd + 50f : realProd;
+                float adProd = (hasAIAdvantage) ? realProd * 1.2f + 50f : realProd;
                 return adProd;
             }
         }
@@ -139,12 +139,12 @@ namespace DiamondInTheWater.Entities
         public const float FACTORY_PRODUCTION = 200f;
         public const int MAX_POPULATION = 100;
 
-        public const float FACTORY_NEEDED = 300;
-        public const float TRUCK_NEEDED = 100;
-        public const float TOOL_NEEDED = 50;
-        public const float SHIRT_NEEDED = 70;
-        public const float CHOC_NEEDED = 50;
-        public const float PHONE_NEEDED = 100;
+        public const float FACTORY_NEEDED = 320;
+        public const float TRUCK_NEEDED = 120;
+        public const float TOOL_NEEDED = 70;
+        public const float SHIRT_NEEDED = 80;
+        public const float CHOC_NEEDED = 60;
+        public const float PHONE_NEEDED = 110;
         private double populationPrecise;
 
         public List<DayInfo> DayStats
@@ -162,7 +162,7 @@ namespace DiamondInTheWater.Entities
             Unemployment = 0.05f;
             Name = name;
             populationPrecise = 32.0;
-            DayStats.Add(new DayInfo(0, 0, 0, 0, 0, 0,Production, (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            DayStats.Add(new DayInfo(0, 0, 0, 0, 0, 0, Production, (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
             hasAIAdvantage = false;
         }
 
@@ -232,7 +232,7 @@ namespace DiamondInTheWater.Entities
 
         public float CalculateHappiness()
         { 
-            return (float)(Math.Max(Math.Log(Chocolates * Phones * Shirts), 1)) * (1 - RealUnemployment) * 0.5f;
+            return (float)(Math.Max(Math.Log(Chocolates * Phones * Shirts / 2), 1)) * (1 - RealUnemployment) * 0.45f;
         }
 
         public float ChocolateValue(float choc)
