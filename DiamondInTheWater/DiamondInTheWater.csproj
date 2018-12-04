@@ -51,6 +51,7 @@
     <Compile Include="Entities\Minigame\ASProjectile.cs" />
     <Compile Include="Entities\Minigame\BusinessCycleProjectile.cs" />
     <Compile Include="Entities\Minigame\FortyFiveProjectile.cs" />
+    <Compile Include="Entities\Minigame\FriendlyProjectile.cs" />
     <Compile Include="Entities\Minigame\KeynesianCross.cs" />
     <Compile Include="Entities\Minigame\LafferProjectile.cs" />
     <Compile Include="Entities\Minigame\LRASProjectile.cs" />

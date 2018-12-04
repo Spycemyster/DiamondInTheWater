@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using static DiamondInTheWater.Entities.Minigame.FriendlyProjectile;
 
 namespace DiamondInTheWater.Entities.Minigame
 {
@@ -14,16 +15,17 @@ namespace DiamondInTheWater.Entities.Minigame
     {
         private const float SCALE = 0.4f;
         private const float MOVE_SPEED = 6;
-        private Vector2 position;
-        private Texture2D texture;
+        private Texture2D texture0, texture1, blank;
         private int health;
+        private float fireTimer;
         private List<Projectile> projectiles;
+        private float hurtTimer;
 
         public Player(List<Projectile> projectiles)
         {
             health = 20;
             this.projectiles = projectiles;
-            position = new Vector2(Game1.WIDTH / 2, Game1.HEIGHT - 200);
+            Position = new Vector2(Game1.WIDTH / 2, Game1.HEIGHT - 200);
         }
 
         public Rectangle GetCollisionRectangle(int safe)
@@ -35,48 +37,85 @@ namespace DiamondInTheWater.Entities.Minigame
 
         public Rectangle GetDrawRectangle()
         {
-            return new Rectangle((int)position.X, (int)position.Y, (int)(texture.Width * SCALE), (int)(texture.Height * SCALE));
+            return new Rectangle((int)Position.X, (int)Position.Y, (int)(texture0.Width * SCALE), (int)(texture0.Height * SCALE));
         }
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, GetDrawRectangle(), Color.White);
+            Color r = (hurtTimer >= 0) ? Color.Red : Color.White;
+            spriteBatch.Draw(Texture, GetDrawRectangle(), r);
         }
 
         public override void Initialize(ContentManager Content)
         {
-            texture = Content.Load<Texture2D>("PelkeySmile");
+            texture0 = Content.Load<Texture2D>("PelkeySmile");
+            texture1 = Content.Load<Texture2D>("PelkeyFrown");
+            blank = Content.Load<Texture2D>("blank");
+            Texture = texture0;
+        }
+
+        private void Hurt()
+        {
+            hurtTimer = 225f;
         }
 
         public override void Update(GameTime gameTime)
         {
             Vector2 velocity = Vector2.Zero;
-
-            if (InputManager.Instance.KeyDown(Keys.W))
+            hurtTimer -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            fireTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (InputManager.Instance.KeyDown(Keys.W) || InputManager.Instance.KeyDown(Keys.Up))
             {
                 velocity.Y = -1;
             }
-            else if (InputManager.Instance.KeyDown(Keys.S))
+            else if (InputManager.Instance.KeyDown(Keys.S) || InputManager.Instance.KeyDown(Keys.Down))
             {
                 velocity.Y = 1;
             }
 
-            if (InputManager.Instance.KeyDown(Keys.A))
+            if (InputManager.Instance.KeyDown(Keys.A) || InputManager.Instance.KeyDown(Keys.Left))
             {
                 velocity.X = -1;
             }
-            else if (InputManager.Instance.KeyDown(Keys.D))
+            else if (InputManager.Instance.KeyDown(Keys.D) || InputManager.Instance.KeyDown(Keys.Right))
             {
                 velocity.X = 1;
             }
+
+
+            Texture = (hurtTimer <= 0) ? texture0 : texture1;
+
+            // shooting
+
+            if (InputManager.Instance.KeyDown(Keys.Space))
+            {
+                if (fireTimer > 405)
+                {
+                    fireTimer = 0;
+                    int x = GetDrawRectangle().X + GetDrawRectangle().Width / 2;
+                    int y = GetDrawRectangle().Y;
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                        6000, FriendlyProjectileType.NLINEAR, projectiles));
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                        6000, FriendlyProjectileType.PLINEAR, projectiles));
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                        6000, FriendlyProjectileType.NSINUISOID, projectiles));
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                        6000, FriendlyProjectileType.PSINUISOID, projectiles));
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9), 
+                        6000, FriendlyProjectileType.VERTICAL, projectiles));
+                }
+            }
+
             if (velocity.Length() > 0)
                 velocity.Normalize();
-            position += velocity * MOVE_SPEED;
+            Position += velocity * MOVE_SPEED;
 
             for (int i = 0; i < projectiles.Count; i++)
             {
-                if (projectiles[i].GetCollisionRectangle().Intersects(GetCollisionRectangle(24)))
+                if (!(projectiles[i] is FriendlyProjectile)
+                    && projectiles[i].GetCollisionRectangle().Intersects(GetCollisionRectangle(24)))
                 {
-                    health--;
+                    Hurt();
                     projectiles.RemoveAt(i--);
                 }
             }

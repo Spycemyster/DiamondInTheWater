@@ -70,11 +70,17 @@ namespace DiamondInTheWater.Screens
         {
         }
 
-        public void SpawnRandom()
+        public void SpawnRandom(int safeDistance)
         {
             int size = 10 + rand.Next(0, 10);
             int x = rand.Next(-size, game.Width);
             int y = rand.Next(-size, game.Height);
+
+            while (Vector2.Distance(player.Position, new Vector2(x, y)) <= safeDistance)
+            {
+                x = rand.Next(-size, game.Width);
+                y = rand.Next(-size, game.Height);
+            }
             RandomProjectile rp = new RandomProjectile(blank, new Rectangle(x, y, size, size), 10000)
             {
                 Speed = 2.5f,
@@ -96,7 +102,7 @@ namespace DiamondInTheWater.Screens
             if (timer > 8000 && rSpawnTimer > 60)
             {
                 rSpawnTimer = 0;
-                SpawnRandom();
+                SpawnRandom(350);
             }
 
             for (int i = 0; i < projectiles.Count; i++)
@@ -106,8 +112,16 @@ namespace DiamondInTheWater.Screens
                 if (projectiles[i].TTL <= 0)
                     projectiles.RemoveAt(i--);
             }
-            foreach (Projectile p in projectiles)
-                p.Update(gameTime);
+
+            int initialCount = projectiles.Count;
+
+            for (int i = 0; i < projectiles.Count; i++)
+            {
+                projectiles[i].Update(gameTime);
+
+                i += Math.Max(Math.Min(0, projectiles.Count - initialCount), 0);
+            }
+
             if (timer <= 8000)
             {
                 state = MinigameState.NONE;
@@ -147,50 +161,79 @@ namespace DiamondInTheWater.Screens
             else if (timer > 50000 && timer < 53000)
             {
                 state = MinigameState.PHILLIPS;
-                projectiles.Add(new PhillipsProjectile(blank, new Rectangle(50, 0, 10, 10), 18000));
+
+                if (spawnTimer > 32)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new PhillipsProjectile(blank, new Rectangle(50, 0, 10, 10), 18000));
+                }
+
             }
             else if (timer > 56000 && timer < 60000)
             {
                 state = MinigameState.SUPPLY_DEMAND;
-                projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+
+                if (spawnTimer > 100)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                }
             }
             else if (timer > 63000 && timer < 68000)
             {
                 state = MinigameState.RECESSION_DEPRESSION;
-                // recession/depression
-                projectiles.Add(new LRASProjectile(blank, new Rectangle(
-                    game.Width / 2, 0, 10, 10), 5000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width - 300, game.Height * 3 / 4 + 300, 10, 10), 10000));
+
+                if (spawnTimer > 100)
+                {
+                    spawnTimer = 0;
+                    // recession/depression
+                    projectiles.Add(new LRASProjectile(blank, new Rectangle(
+                        game.Width / 2, 0, 10, 10), 5000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width - 300, game.Height * 3 / 4 + 300, 10, 10), 10000));
+                }
             }
             else if (timer >= 68000 && timer < 72000)
             {
                 state = MinigameState.INFLATION;
-                projectiles.Add(new LRASProjectile(blank, new Rectangle(
-                    game.Width / 2, 0, 10, 10), 5000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width + 200, game.Height * 3 / 4 - 100, 10, 10), 10000));
+
+                if (spawnTimer > 100)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new LRASProjectile(blank, new Rectangle(
+                        game.Width / 2, 0, 10, 10), 5000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width + 200, game.Height * 3 / 4 - 100, 10, 10), 10000));
+                }
             }
             else if (timer >= 72000 && timer < 90000)
             {
                 state = MinigameState.STAGFLATION;
-                projectiles.Add(new LRASProjectile(blank, new Rectangle(
-                    game.Width / 2, 0, 10, 10), 5000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(-200, game.Height * 3 / 4 - 200, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                if (spawnTimer > 100)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new LRASProjectile(blank, new Rectangle(
+                        game.Width / 2, 0, 10, 10), 5000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(-200, game.Height * 3 / 4 - 200, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                }
             }
             else if (timer > 90000 && timer < 95000)
             {
                 state = MinigameState.ECONOMIC_BOOM;
-                projectiles.Add(new LRASProjectile(blank, new Rectangle(
-                    game.Width / 2, 0, 10, 10), 5000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                projectiles.Add(new ASProjectile(blank, new Rectangle(200, game.Height * 3 / 4 + 200, 10, 10), 10000));
-                projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                if (spawnTimer > 100)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new LRASProjectile(blank, new Rectangle(
+                        game.Width / 2, 0, 10, 10), 5000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(200, game.Height * 3 / 4 + 200, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                }
             }
             else
                 state = MinigameState.END;
