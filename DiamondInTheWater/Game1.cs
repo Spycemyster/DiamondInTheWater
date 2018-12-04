@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 
 namespace DiamondInTheWater
 {
@@ -13,6 +14,9 @@ namespace DiamondInTheWater
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        public const int WIDTH = 1600;
+        public const int HEIGHT = 900;
 
         /// <summary>
         /// The width in pixels of the game window.
@@ -90,12 +94,15 @@ namespace DiamondInTheWater
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Delete))
                 Exit();
-
+            
             if (IsActive)
             {
+                MediaPlayer.Resume();
                 InputManager.Instance.Update();
                 GameManager.GetInstance().Update(gameTime);
             }
+            else
+                MediaPlayer.Pause();
 
             base.Update(gameTime);
         }

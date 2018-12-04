@@ -45,7 +45,7 @@ namespace DiamondInTheWater
         public void Load(Game1 game)
         {
             this.game = game;
-            ChangeScreen(ScreenState.MENU);
+            ChangeScreen(ScreenState.MINIGAME);
         }
 
         public void ChangeScreen(ScreenState state)
@@ -58,6 +58,9 @@ namespace DiamondInTheWater
                     break;
                 case ScreenState.MENU:
                     screen = new MenuScreen(game);
+                    break;
+                case ScreenState.MINIGAME:
+                    screen = new MinigameScreen(game);
                     break;
             }
 
@@ -88,5 +91,6 @@ namespace DiamondInTheWater
     {
         GAME,
         MENU,
+        MINIGAME,
     }
 }

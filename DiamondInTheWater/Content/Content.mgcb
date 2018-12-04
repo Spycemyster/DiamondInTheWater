@@ -471,3 +471,15 @@
 /processorParam:TextureFormat=Color
 /build:HalfMuted.png
 
+#begin M1.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:M1.mp3
+
+#begin M2.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:M2.mp3
+

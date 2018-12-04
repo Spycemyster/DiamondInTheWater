@@ -47,6 +47,17 @@
     <Compile Include="Entities\Factory.cs" />
     <Compile Include="Entities\House.cs" />
     <Compile Include="Entities\Items.cs" />
+    <Compile Include="Entities\Minigame\ADProjectile.cs" />
+    <Compile Include="Entities\Minigame\ASProjectile.cs" />
+    <Compile Include="Entities\Minigame\BusinessCycleProjectile.cs" />
+    <Compile Include="Entities\Minigame\FortyFiveProjectile.cs" />
+    <Compile Include="Entities\Minigame\KeynesianCross.cs" />
+    <Compile Include="Entities\Minigame\LafferProjectile.cs" />
+    <Compile Include="Entities\Minigame\LRASProjectile.cs" />
+    <Compile Include="Entities\Minigame\PhillipsProjectile.cs" />
+    <Compile Include="Entities\Minigame\Projectile.cs" />
+    <Compile Include="Entities\Minigame\RandomProjectile.cs" />
+    <Compile Include="Entities\Minigame\ScrollingWater.cs" />
     <Compile Include="Entities\Nation.cs" />
     <Compile Include="Entities\Person.cs" />
     <Compile Include="Entities\Truck.cs" />
@@ -63,6 +74,7 @@
     <Compile Include="Screen.cs" />
     <Compile Include="Screens\GameScreen.cs" />
     <Compile Include="Screens\MenuScreen.cs" />
+    <Compile Include="Screens\MinigameScreen.cs" />
     <Compile Include="Sprite.cs" />
     <Compile Include="SpriteBatchExtensions.cs" />
     <Compile Include="UserInterface\UIButton.cs" />
@@ -115,6 +127,7 @@
     <Content Include="Content\ToolIcon.png" />
     <Content Include="Content\Truck.png" />
     <Content Include="Content\TruckIcon.png" />
+    <Content Include="Content\M1.mp3" />
     <Content Include="Content\Up.png" />
     <Content Include="Content\WaterSheet.png" />
     <Content Include="FodyWeavers.xml" />

@@ -162,7 +162,8 @@ namespace DiamondInTheWater.Entities
             Unemployment = 0.05f;
             Name = name;
             populationPrecise = 32.0;
-            DayStats.Add(new DayInfo(0, 0, 0, 0, 0, 0, Production, (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+            DayStats.Add(new DayInfo(0, 0, 0, 0, 0, 0, Production, 
+                (float)populationPrecise, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
             hasAIAdvantage = false;
         }
 
