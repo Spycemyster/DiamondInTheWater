@@ -26,6 +26,7 @@ namespace DiamondInTheWater.Screens
         private Song background;
         private SpriteFont font;
         private MinigameState state;
+        private Player player;
         private enum MinigameState
         {
             NONE,
@@ -57,6 +58,8 @@ namespace DiamondInTheWater.Screens
 
         public override void Initialize(ContentManager Content)
         {
+            player = new Player(projectiles);
+            player.Initialize(Content);
             font = Content.Load<SpriteFont>("largeFont");
             blank = Content.Load<Texture2D>("blank");
             background = Content.Load<Song>("M2");
@@ -88,6 +91,7 @@ namespace DiamondInTheWater.Screens
             spawnTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
             water.Update(gameTime);
             Tile.Update(gameTime);
+            player.Update(gameTime);
 
             if (timer > 8000 && rSpawnTimer > 60)
             {
@@ -147,7 +151,7 @@ namespace DiamondInTheWater.Screens
             }
             else if (timer > 56000 && timer < 60000)
             {
-                state = MinigameState.AGGREGATE_DEMAND_SUPPLY;
+                state = MinigameState.SUPPLY_DEMAND;
                 projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
                 projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
             }
@@ -199,6 +203,8 @@ namespace DiamondInTheWater.Screens
             water.Draw(spriteBatch);
             foreach (Projectile p in projectiles)
                 p.Draw(spriteBatch);
+
+            player.Draw(spriteBatch);
 
             string text = "";
 

@@ -55,6 +55,7 @@
     <Compile Include="Entities\Minigame\LafferProjectile.cs" />
     <Compile Include="Entities\Minigame\LRASProjectile.cs" />
     <Compile Include="Entities\Minigame\PhillipsProjectile.cs" />
+    <Compile Include="Entities\Minigame\Player.cs" />
     <Compile Include="Entities\Minigame\Projectile.cs" />
     <Compile Include="Entities\Minigame\RandomProjectile.cs" />
     <Compile Include="Entities\Minigame\ScrollingWater.cs" />

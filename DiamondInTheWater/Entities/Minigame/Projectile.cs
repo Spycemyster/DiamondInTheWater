@@ -28,6 +28,11 @@ namespace DiamondInTheWater.Entities.Minigame
             position = drawRectangle.Location.ToVector2();
         }
 
+        public Rectangle GetCollisionRectangle()
+        {
+            return drawRectangle;
+        }
+
         public override void Initialize(ContentManager Content)
         {
         }
