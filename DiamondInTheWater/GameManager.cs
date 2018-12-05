@@ -45,7 +45,7 @@ namespace DiamondInTheWater
         public void Load(Game1 game)
         {
             this.game = game;
-            ChangeScreen(ScreenState.MINIGAME);
+            ChangeScreen(ScreenState.MENU);
         }
 
         public void ChangeScreen(ScreenState state)

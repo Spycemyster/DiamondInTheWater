@@ -13,7 +13,7 @@ namespace DiamondInTheWater.Screens
 {
     public class MenuScreen : Screen
     {
-        private UIButton start, load;
+        private UIButton start, load, minigame;
         private Texture2D texture, blank;
         private Game1 game;
         public MenuScreen(Game1 game)
@@ -27,6 +27,7 @@ namespace DiamondInTheWater.Screens
             spriteBatch.Draw(texture, new Rectangle(0, 0, game.Width, game.Height), Color.White);
             start.Draw(spriteBatch);
             load.Draw(spriteBatch);
+            minigame.Draw(spriteBatch);
             spriteBatch.End();
         }
 
@@ -50,6 +51,14 @@ namespace DiamondInTheWater.Screens
             load.OnClick += onClick;
             load.Text = "Load";
             load.Texture = blank;
+            minigame = new UIButton();
+            minigame.Font = Content.Load<SpriteFont>("largeFont");
+            minigame.Size = new Point(240, 70);
+            minigame.Position = new Point(game.Width / 2 - 120, game.Height / 2 + 272);
+            minigame.Background = Color.DimGray * 0.95f;
+            minigame.OnClick += onClick;
+            minigame.Text = "Bonus";
+            minigame.Texture = blank;
         }
 
         private void onClick(UIEventArg arg)
@@ -68,6 +77,10 @@ namespace DiamondInTheWater.Screens
             {
                 GameManager.GetInstance().ChangeScreen(ScreenState.GAME);
             }
+            else if (arg.Component == minigame)
+            {
+                GameManager.GetInstance().ChangeScreen(ScreenState.MINIGAME);
+            }
         }
 
         public override void Unload()
@@ -78,6 +91,7 @@ namespace DiamondInTheWater.Screens
         {
             start.Update(gameTime);
             load.Update(gameTime);
+            minigame.Update(gameTime);
         }
     }
 }

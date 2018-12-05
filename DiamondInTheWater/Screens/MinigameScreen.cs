@@ -30,6 +30,7 @@ namespace DiamondInTheWater.Screens
         private enum MinigameState
         {
             NONE,
+            BEGIN,
             AGGREGATE_DEMAND_SUPPLY,
             BUSINESS_CYCLE,
             PHILLIPS,
@@ -70,6 +71,19 @@ namespace DiamondInTheWater.Screens
         {
         }
 
+        public RandomProjectile GenerateProjectile(int x, int y, int size)
+        {
+            Color c = new Color(rand.Next(0, 256), rand.Next(0, 256), rand.Next(0, 256));
+            RandomProjectile rp = new RandomProjectile(blank, new Rectangle(x, y, size, size), 10000)
+            {
+                Speed = 1.5f,
+                Rotation = (float)(rand.NextDouble() * Math.PI),
+                Color = c,
+            };
+
+            return rp;
+        }
+
         public void SpawnRandom(int safeDistance)
         {
             int size = 10 + rand.Next(0, 10);
@@ -99,18 +113,20 @@ namespace DiamondInTheWater.Screens
             Tile.Update(gameTime);
             player.Update(gameTime);
 
-            if (timer > 8000 && rSpawnTimer > 60)
+            
+            if (timer > 8000 && rSpawnTimer > 200)
             {
                 rSpawnTimer = 0;
                 SpawnRandom(350);
-            }
+                RandomProjectile p = GenerateProjectile(game.Width / 5, 0, 10);
+                RandomProjectile p2 = GenerateProjectile(game.Width / 5 * 2, 0, 10);
+                RandomProjectile p3 = GenerateProjectile(game.Width / 5 * 3, 0, 10);
+                RandomProjectile p4 = GenerateProjectile(game.Width / 5 * 4, 0, 10);
 
-            for (int i = 0; i < projectiles.Count; i++)
-            {
-                projectiles[i].Update(gameTime);
-
-                if (projectiles[i].TTL <= 0)
-                    projectiles.RemoveAt(i--);
+                projectiles.Add(p);
+                projectiles.Add(p2);
+                projectiles.Add(p3);
+                projectiles.Add(p4);
             }
 
             int initialCount = projectiles.Count;
@@ -118,11 +134,17 @@ namespace DiamondInTheWater.Screens
             for (int i = 0; i < projectiles.Count; i++)
             {
                 projectiles[i].Update(gameTime);
+                if (projectiles[i].TTL <= 0)
+                    projectiles.RemoveAt(i--);
 
                 i += Math.Max(Math.Min(0, projectiles.Count - initialCount), 0);
             }
 
-            if (timer <= 8000)
+            if (timer < 8000)
+            {
+                state = MinigameState.BEGIN;
+            }
+            else if (timer <= 8000)
             {
                 state = MinigameState.NONE;
             }
@@ -235,8 +257,14 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
-            else
+            else if (spawnTimer > 98000 && spawnTimer < 101000)
+            {
                 state = MinigameState.END;
+            }
+            else if (spawnTimer > 101000)
+            {
+                GameManager.GetInstance().ChangeScreen(ScreenState.MENU);
+            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -251,7 +279,7 @@ namespace DiamondInTheWater.Screens
 
             string text = "";
 
-            if (!state.Equals(MinigameState.END))
+            if (!state.Equals(MinigameState.END) && !state.Equals(MinigameState.BEGIN))
             {
                 switch (state)
                 {
@@ -286,14 +314,29 @@ namespace DiamondInTheWater.Screens
                         text = "During Economic Boom";
                         break;
                 }
+                Vector2 position = new Vector2(game.Width - font.MeasureString(text).X - 32, game.Height - font.MeasureString(text).Y - 32);
+                spriteBatch.DrawString(font, text, position + new Vector2(-2, 2), Color.Black * 0.6f);
+                spriteBatch.DrawString(font, text, position, Color.White);
             }
-            else
+            else if (state == MinigameState.BEGIN)
             {
+                text = "Bonus Minigame!";
+                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, game.Height / 2 - font.MeasureString(text).Y / 2);
 
+                spriteBatch.DrawString(font, text, position + new Vector2(-3, 3), Color.Black * 0.6f);
+                spriteBatch.DrawString(font, text, position, Color.White);
             }
-            Vector2 position = new Vector2(game.Width - font.MeasureString(text).X - 32, game.Height - font.MeasureString(text).Y - 32);
-            spriteBatch.DrawString(font, text, position + new Vector2(-2, 2), Color.Black * 0.6f);
-            spriteBatch.DrawString(font, text, position, Color.White);
+            else if (state == MinigameState.END)
+            {
+                text = "Thanks for playing!";
+                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, game.Height / 2 - font.MeasureString(text).Y / 2);
+
+                spriteBatch.DrawString(font, text, position + new Vector2(-3, 3), Color.Black * 0.6f);
+                spriteBatch.DrawString(font, text, position, Color.White);
+            }
+
+            spriteBatch.DrawString(font, "Made by Spencer Chang", new Vector2(8, 8), Color.White * 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, "Meglovania - Undertale", new Vector2(8, game.Height - 40), Color.White * 0.9f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
             spriteBatch.End();
         }
     }
