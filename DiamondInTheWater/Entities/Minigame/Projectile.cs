@@ -50,7 +50,7 @@ namespace DiamondInTheWater.Entities.Minigame
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            Draw(spriteBatch, Color.Blue);
+            Draw(spriteBatch, Color.Red);
         }
 
         public void Draw(SpriteBatch spriteBatch, Color color)

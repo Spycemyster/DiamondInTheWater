@@ -17,7 +17,7 @@ namespace DiamondInTheWater.Entities.Minigame
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
-            velocity = new Vector2(4, -2);
+            velocity = new Vector2(7, -3);
         }
     }
 }

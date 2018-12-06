@@ -23,7 +23,7 @@ namespace DiamondInTheWater.Entities.Minigame
             timer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             float a = 700;
-            velocity = new Vector2(2.75f, 3 * (float)(Math.Cos(timer / a)) - .6f);
+            velocity = new Vector2(2.75f, 3 * (float)(Math.Cos(timer / a)) - .8f);
         }
     }
 }

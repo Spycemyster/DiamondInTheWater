@@ -53,21 +53,24 @@ namespace DiamondInTheWater.Entities.Minigame
             switch (type)
             {
                 case FriendlyProjectileType.PSINUISOID:
-                    velocity = new Vector2(-(float)Math.Cos(timer / 200) * 2.5f, -2);
+                    velocity = new Vector2(-(float)Math.Cos(timer / 200) * 2.5f, -6);
                     break;
                 case FriendlyProjectileType.NSINUISOID:
-                    velocity = new Vector2((float)Math.Cos(timer / 200) * 2.5f, -2);
+                    velocity = new Vector2((float)Math.Cos(timer / 200) * 2.5f, -6);
                     break;
                 case FriendlyProjectileType.VERTICAL:
                     velocity = new Vector2(0, -2);
                     break;
                 case FriendlyProjectileType.NLINEAR:
-                    velocity = new Vector2(2, -2);
+                    velocity = new Vector2(2, -9);
                     break;
                 case FriendlyProjectileType.PLINEAR:
-                    velocity = new Vector2(-2, -2);
+                    velocity = new Vector2(-2, -9);
                     break;
             }
+
+            velocity.Normalize();
+            velocity *= 7;
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -75,7 +78,7 @@ namespace DiamondInTheWater.Entities.Minigame
             Rectangle cRect = GetCollisionRectangle();
             Rectangle borRect = new Rectangle(cRect.X - 3, cRect.Y - 3, cRect.Width + 6, cRect.Height + 6);
             spriteBatch.Draw(Texture, borRect, Color.Black);
-            spriteBatch.Draw(Texture, cRect, Color.Green);
+            spriteBatch.Draw(Texture, cRect, Color.White);
         }
 
     }

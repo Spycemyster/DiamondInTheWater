@@ -19,13 +19,7 @@ namespace DiamondInTheWater.Entities.Minigame
         {
             timer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             base.Update(gameTime);
-            int time = 10;
-            float timeC = (timer / time);
-            position = new Vector2(timeC, (float)((3 * Math.Pow(Game1.WIDTH, 2) - 4 * Math.Pow(timeC, 2) + 4 * timeC * Game1.WIDTH) / (4 * Math.Pow(Game1.WIDTH, 2))));
-            //position = new Vector2((timer ) / time + Game1.WIDTH / 2, 
-            //    -(float)Math.Sqrt(Math.Max(Math.Pow(Game1.HEIGHT, 2) - 
-            //    Math.Pow((timer - Game1.WIDTH / 2) / time, 2), 0)) + Game1.HEIGHT);
-            //velocity = new Vector2(5, (float)((2 * timer + Game1.WIDTH) / (2 * Math.Sqrt(Math.Pow(Game1.HEIGHT, 2) - Math.Pow(timer, 2) + timer * Game1.WIDTH - Math.Pow(Game1.WIDTH, 2) / 4))));
+            velocity = new Vector2(6, -Game1.HEIGHT * 10 * (float)( Math.PI / Game1.WIDTH / 2.8f * Math.Cos(timer * Math.PI / Game1.WIDTH / 2.8f)));
         }
     }
 }

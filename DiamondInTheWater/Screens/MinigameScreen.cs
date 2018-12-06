@@ -18,15 +18,18 @@ namespace DiamondInTheWater.Screens
             get { return timer / 1000.0; }
         }
         private Game1 game;
+        private float endTimer;
         private double timer, spawnTimer, rSpawnTimer;
         private ScrollingWater water;
         private List<Projectile> projectiles;
-        private Texture2D blank;
+        private Texture2D blank, money;
         private Random rand;
-        private Song background;
+        private Song background, background2;
         private SpriteFont font;
         private MinigameState state;
         private Player player;
+        private Boss boss;
+        string songName;
         private enum MinigameState
         {
             NONE,
@@ -41,8 +44,10 @@ namespace DiamondInTheWater.Screens
             INFLATION,
             STAGFLATION,
             ECONOMIC_BOOM,
+            BOSS,
             END,
         }
+        private bool isPlayFlag;
 
         /// <summary>
         /// Creates a new instance of the <c>MinigameScreen</c>.
@@ -50,20 +55,27 @@ namespace DiamondInTheWater.Screens
         /// <param name="game"></param>
         public MinigameScreen(Game1 game)
         {
+            isPlayFlag = false;
             rand = new Random();
             projectiles = new List<Projectile>();
             water = new ScrollingWater(game);
             this.game = game;
             state = MinigameState.NONE;
+            timer = 124000;
         }
 
         public override void Initialize(ContentManager Content)
         {
             player = new Player(projectiles);
+            boss = new Boss(projectiles);
+            boss.Initialize(Content);
             player.Initialize(Content);
             font = Content.Load<SpriteFont>("largeFont");
             blank = Content.Load<Texture2D>("blank");
+            money = Content.Load<Texture2D>("Money");
             background = Content.Load<Song>("M2");
+            background2 = Content.Load<Song>("M1");
+            songName = "Megalovania - Undertale";
             MediaPlayer.Play(background);
         }
 
@@ -71,12 +83,13 @@ namespace DiamondInTheWater.Screens
         {
         }
 
-        public RandomProjectile GenerateProjectile(int x, int y, int size)
+        public RandomProjectile GenerateProjectile(int x, int y, int size, Color co)
         {
-            Color c = new Color(rand.Next(0, 256), rand.Next(0, 256), rand.Next(0, 256));
+            Color c = (co.Equals(Color.Transparent)) ? new Color(rand.Next(0, 256), 
+                rand.Next(0, 256), rand.Next(0, 256)) : co;
             RandomProjectile rp = new RandomProjectile(blank, new Rectangle(x, y, size, size), 10000)
             {
-                Speed = 1.5f,
+                Speed = 3.5f,
                 Rotation = (float)(rand.NextDouble() * Math.PI),
                 Color = c,
             };
@@ -109,19 +122,31 @@ namespace DiamondInTheWater.Screens
             timer += gameTime.ElapsedGameTime.TotalMilliseconds;
             rSpawnTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
             spawnTimer += gameTime.ElapsedGameTime.TotalMilliseconds;
+            float dt = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            float dv = 0.0004f;
             water.Update(gameTime);
             Tile.Update(gameTime);
             player.Update(gameTime);
+            float bossFightTimer = (float)(timer - (124000 + 4 / dv + 64));
 
-            
-            if (timer > 8000 && rSpawnTimer > 200)
+            if (player.Health <= 0)
+            {
+                GameManager.GetInstance().ChangeScreen(ScreenState.MENU);
+            }
+
+            int t = (int)(2 / dv + 16);
+            int rSpawnTimerThresh = (state.Equals(MinigameState.BOSS)) ? 300 : 200;
+
+            if (timer > 8000 && rSpawnTimer > rSpawnTimerThresh && boss.Health > 0)
             {
                 rSpawnTimer = 0;
-                SpawnRandom(350);
-                RandomProjectile p = GenerateProjectile(game.Width / 5, 0, 10);
-                RandomProjectile p2 = GenerateProjectile(game.Width / 5 * 2, 0, 10);
-                RandomProjectile p3 = GenerateProjectile(game.Width / 5 * 3, 0, 10);
-                RandomProjectile p4 = GenerateProjectile(game.Width / 5 * 4, 0, 10);
+                if (!state.Equals(MinigameState.BOSS))
+                    SpawnRandom(350);
+                Color c = (state.Equals(MinigameState.BOSS)) ? Color.Red : Color.Transparent;
+                RandomProjectile p = GenerateProjectile(game.Width / 5, 0, 10, c);
+                RandomProjectile p2 = GenerateProjectile(game.Width / 5 * 2, 0, 10, c);
+                RandomProjectile p3 = GenerateProjectile(game.Width / 5 * 3, 0, 10, c);
+                RandomProjectile p4 = GenerateProjectile(game.Width / 5 * 4, 0, 10, c);
 
                 projectiles.Add(p);
                 projectiles.Add(p2);
@@ -134,10 +159,11 @@ namespace DiamondInTheWater.Screens
             for (int i = 0; i < projectiles.Count; i++)
             {
                 projectiles[i].Update(gameTime);
-                if (projectiles[i].TTL <= 0)
-                    projectiles.RemoveAt(i--);
-
                 i += Math.Max(Math.Min(0, projectiles.Count - initialCount), 0);
+                if (projectiles[Math.Min(i, projectiles.Count - 1)].TTL <= 0)
+                    projectiles.RemoveAt(i--);
+                i += Math.Max(Math.Min(0, projectiles.Count - initialCount), 0);
+
             }
 
             if (timer < 8000)
@@ -151,7 +177,7 @@ namespace DiamondInTheWater.Screens
             else if (timer > 8000 && timer < 14000)
             {
                 state = MinigameState.KEYNESIAN_CROSS;
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new FortyFiveProjectile(blank, new Rectangle(0, game.Height, 10, 10), 9000));
@@ -161,7 +187,7 @@ namespace DiamondInTheWater.Screens
             else if (timer > 15000 && timer < 28500)
             {
                 state = MinigameState.AGGREGATE_DEMAND_SUPPLY;
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
@@ -173,25 +199,25 @@ namespace DiamondInTheWater.Screens
             else if (timer > 32000 && timer < 46500)
             {
                 state = MinigameState.BUSINESS_CYCLE;
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new BusinessCycleProjectile(blank, new Rectangle(
-                        10, game.Height / 2, 10, 10), 10000));
+                        0, game.Height / 4 * 3, 10, 10), 10000));
                 }
             }
-            else if (timer > 50000 && timer < 53000)
+            else if (timer > 50000 && timer < 62000)
             {
                 state = MinigameState.PHILLIPS;
 
-                if (spawnTimer > 32)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new PhillipsProjectile(blank, new Rectangle(50, 0, 10, 10), 18000));
                 }
 
             }
-            else if (timer > 56000 && timer < 60000)
+            else if (timer > 64000 && timer < 78000)
             {
                 state = MinigameState.SUPPLY_DEMAND;
 
@@ -202,11 +228,11 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
-            else if (timer > 63000 && timer < 68000)
+            else if (timer > 82000 && timer < 88500)
             {
                 state = MinigameState.RECESSION_DEPRESSION;
 
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     // recession/depression
@@ -217,11 +243,11 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width - 300, game.Height * 3 / 4 + 300, 10, 10), 10000));
                 }
             }
-            else if (timer >= 68000 && timer < 72000)
+            else if (timer >= 88500 && timer < 96000)
             {
                 state = MinigameState.INFLATION;
 
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
@@ -231,10 +257,10 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width + 200, game.Height * 3 / 4 - 100, 10, 10), 10000));
                 }
             }
-            else if (timer >= 72000 && timer < 90000)
+            else if (timer >= 96000 && timer < 103000)
             {
                 state = MinigameState.STAGFLATION;
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
@@ -244,10 +270,10 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
-            else if (timer > 90000 && timer < 95000)
+            else if (timer > 103000 && timer < 112000)
             {
                 state = MinigameState.ECONOMIC_BOOM;
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
@@ -257,14 +283,50 @@ namespace DiamondInTheWater.Screens
                     projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
-            else if (spawnTimer > 98000 && spawnTimer < 101000)
+            else if (timer > 114000 && timer < 124000)
             {
+                if (spawnTimer > 70)
+                {
+                    spawnTimer = 0;
+                    projectiles.Add(new LafferProjectile(blank, new Rectangle(0, game.Height, 10, 10), 10000));
+                }
+                state = MinigameState.LAFFERS_CURVE;
+            }
+            else if (timer > 124000 && timer < 124000 + t)
+            {
+                state = MinigameState.NONE;
+                MediaPlayer.Volume = Math.Max(MediaPlayer.Volume - dv * dt, 0);
+                //GameManager.GetInstance().ChangeScreen(ScreenState.MENU);
+            }
+            else if (timer > 124000 + t && timer < 124000 + 2 * t)
+            {
+                if (!isPlayFlag)
+                {
+                    isPlayFlag = true;
+                    MediaPlayer.Play(background2);
+                }
+                MediaPlayer.Volume = Math.Min(MediaPlayer.Volume + dv * dt, 1);
+            }
+            else if (timer > 124000 + 4 / dv + 64 && boss.Health > 0)
+            {
+                state = MinigameState.BOSS;
+                boss.Update(gameTime);
+                songName = "Spear of Justice! - Undertale";
+            }
+            else
+            {
+                state = MinigameState.NONE;
+            }
+
+            if (boss.Health <= 0)
+            {
+                endTimer += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
                 state = MinigameState.END;
+
+                if (endTimer > 10000)
+                    GameManager.GetInstance().ChangeScreen(ScreenState.MENU);
             }
-            else if (spawnTimer > 101000)
-            {
-                GameManager.GetInstance().ChangeScreen(ScreenState.MENU);
-            }
+
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -313,6 +375,10 @@ namespace DiamondInTheWater.Screens
                     case MinigameState.ECONOMIC_BOOM:
                         text = "During Economic Boom";
                         break;
+                    case MinigameState.BOSS:
+                        text = "Boss Fight";
+                        boss.Draw(spriteBatch);
+                        break;
                 }
                 Vector2 position = new Vector2(game.Width - font.MeasureString(text).X - 32, game.Height - font.MeasureString(text).Y - 32);
                 spriteBatch.DrawString(font, text, position + new Vector2(-2, 2), Color.Black * 0.6f);
@@ -328,15 +394,24 @@ namespace DiamondInTheWater.Screens
             }
             else if (state == MinigameState.END)
             {
-                text = "Thanks for playing!";
+                text = "You win! Thanks for playing!";
                 Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, game.Height / 2 - font.MeasureString(text).Y / 2);
 
                 spriteBatch.DrawString(font, text, position + new Vector2(-3, 3), Color.Black * 0.6f);
                 spriteBatch.DrawString(font, text, position, Color.White);
             }
 
+            int width = money.Width * 2;
+            int height = money.Height * 2;
+            for (int i = 0; i < player.Health; i++)
+            {
+                spriteBatch.Draw(money, new Rectangle(16 + i * (width + 16), game.Height - height - 16, width, height), Color.White);
+            }
+
+            float snW = font.MeasureString(songName).X;
             spriteBatch.DrawString(font, "Made by Spencer Chang", new Vector2(8, 8), Color.White * 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
-            spriteBatch.DrawString(font, "Meglovania - Undertale", new Vector2(8, game.Height - 40), Color.White * 0.9f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW * 0.7f - 10, 10), Color.Black* 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW * 0.7f - 8, 8), Color.White * 0.9f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
             spriteBatch.End();
         }
     }

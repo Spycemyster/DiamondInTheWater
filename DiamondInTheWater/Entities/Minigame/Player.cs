@@ -16,7 +16,11 @@ namespace DiamondInTheWater.Entities.Minigame
         private const float SCALE = 0.4f;
         private const float MOVE_SPEED = 6;
         private Texture2D texture0, texture1, blank;
-        private int health;
+        public int Health
+        {
+            get { return (int)Math.Ceiling(health / 2); }
+        }
+        private float health;
         private float fireTimer;
         private List<Projectile> projectiles;
         private float hurtTimer;
@@ -49,13 +53,14 @@ namespace DiamondInTheWater.Entities.Minigame
         {
             texture0 = Content.Load<Texture2D>("PelkeySmile");
             texture1 = Content.Load<Texture2D>("PelkeyFrown");
-            blank = Content.Load<Texture2D>("blank");
+            blank = Content.Load<Texture2D>("Pepsi");
             Texture = texture0;
         }
 
         private void Hurt()
         {
             hurtTimer = 225f;
+            health--;
         }
 
         public override void Update(GameTime gameTime)
@@ -88,20 +93,21 @@ namespace DiamondInTheWater.Entities.Minigame
 
             if (InputManager.Instance.KeyDown(Keys.Space))
             {
-                if (fireTimer > 405)
+                if (fireTimer > 290)
                 {
                     fireTimer = 0;
+                    int size = 24;
                     int x = GetDrawRectangle().X + GetDrawRectangle().Width / 2;
                     int y = GetDrawRectangle().Y;
-                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, size, size),
                         6000, FriendlyProjectileType.NLINEAR, projectiles));
-                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, size, size),
                         6000, FriendlyProjectileType.PLINEAR, projectiles));
-                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, size, size),
                         6000, FriendlyProjectileType.NSINUISOID, projectiles));
-                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9),
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, size, size),
                         6000, FriendlyProjectileType.PSINUISOID, projectiles));
-                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, 9, 9), 
+                    projectiles.Add(new FriendlyProjectile(blank, new Rectangle(x, y, size, size), 
                         6000, FriendlyProjectileType.VERTICAL, projectiles));
                 }
             }

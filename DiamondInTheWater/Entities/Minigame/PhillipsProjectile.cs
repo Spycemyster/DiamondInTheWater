@@ -22,7 +22,7 @@ namespace DiamondInTheWater.Entities.Minigame
             timer += dt;
             base.Update(gameTime);
 
-            velocity = new Vector2(2, (float)(Math.Pow((timer + 700)/ 10000000, -2)) / 10000000);
+            velocity = new Vector2(5f, (float)(Math.Pow((timer + 700)/ 10000000, -2)) / 10000000);
         }
     }
 }

@@ -49,6 +49,7 @@
     <Compile Include="Entities\Items.cs" />
     <Compile Include="Entities\Minigame\ADProjectile.cs" />
     <Compile Include="Entities\Minigame\ASProjectile.cs" />
+    <Compile Include="Entities\Minigame\Boss.cs" />
     <Compile Include="Entities\Minigame\BusinessCycleProjectile.cs" />
     <Compile Include="Entities\Minigame\FortyFiveProjectile.cs" />
     <Compile Include="Entities\Minigame\FriendlyProjectile.cs" />
@@ -102,15 +103,19 @@
     <Content Include="Content\AP5.png" />
     <Content Include="Content\Berkeley.png" />
     <Content Include="Content\blank.png" />
+    <Content Include="Content\Cocacola.png" />
     <Content Include="Content\HalfMuted.png" />
     <Content Include="Content\IMAG0284.jpg" />
     <Content Include="Content\IMG_20181130_111210.jpg" />
+    <Content Include="Content\M2.mp3" />
     <Content Include="Content\Menu.png" />
+    <Content Include="Content\Money.png" />
     <Content Include="Content\Music.txt" />
     <Content Include="Content\Muted.png" />
     <Content Include="Content\NonMuted.png" />
     <Content Include="Content\PelkeyFrown.png" />
     <Content Include="Content\PelkeySmile.png" />
+    <Content Include="Content\Pepsi.png" />
     <Content Include="Content\PlaceholderIcon.png" />
     <Content Include="Content\diamond.png" />
     <Content Include="Content\Down.png" />
