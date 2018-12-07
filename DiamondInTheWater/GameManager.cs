@@ -33,6 +33,9 @@ namespace DiamondInTheWater
         private Game1 game;
         private Screen screen;
 
+        /// <summary>
+        /// The current instance of the <c>Screen</c>.
+        /// </summary>
         public Screen Screen
         {
             get { return screen; }
@@ -48,6 +51,10 @@ namespace DiamondInTheWater
             ChangeScreen(ScreenState.MENU);
         }
 
+        /// <summary>
+        /// Changes the screen to a specified one.
+        /// </summary>
+        /// <param name="state"></param>
         public void ChangeScreen(ScreenState state)
         {
             screen?.Unload();

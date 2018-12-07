@@ -61,7 +61,7 @@ namespace DiamondInTheWater.Screens
             water = new ScrollingWater(game);
             this.game = game;
             state = MinigameState.NONE;
-            timer = 124000;
+            timer = 0;
         }
 
         public override void Initialize(ContentManager Content)
@@ -99,14 +99,14 @@ namespace DiamondInTheWater.Screens
 
         public void SpawnRandom(int safeDistance)
         {
-            int size = 10 + rand.Next(0, 10);
-            int x = rand.Next(-size, game.Width);
-            int y = rand.Next(-size, game.Height);
+            int size = 5 + rand.Next(5, 12);
+            int x = rand.Next(-size, game.Width + size);
+            int y = rand.Next(-size, game.Height + size);
 
             while (Vector2.Distance(player.Position, new Vector2(x, y)) <= safeDistance)
             {
-                x = rand.Next(-size, game.Width);
-                y = rand.Next(-size, game.Height);
+                x = rand.Next(-size, game.Width + size);
+                y = rand.Next(-size, game.Height + size);
             }
             RandomProjectile rp = new RandomProjectile(blank, new Rectangle(x, y, size, size), 10000)
             {
@@ -170,18 +170,16 @@ namespace DiamondInTheWater.Screens
             {
                 state = MinigameState.BEGIN;
             }
-            else if (timer <= 8000)
-            {
-                state = MinigameState.NONE;
-            }
             else if (timer > 8000 && timer < 14000)
             {
                 state = MinigameState.KEYNESIAN_CROSS;
                 if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
-                    projectiles.Add(new FortyFiveProjectile(blank, new Rectangle(0, game.Height, 10, 10), 9000));
-                    projectiles.Add(new KeynesianCross(blank, new Rectangle(0, game.Height / 3 * 2, 10, 10), 9000));
+                    projectiles.Add(new FortyFiveProjectile(blank, new Rectangle(
+                        0, game.Height, 10, 10), 9000));
+                    projectiles.Add(new KeynesianCross(blank, new Rectangle(
+                        0, game.Height / 3 * 2, 10, 10), 9000));
                 }
             }
             else if (timer > 15000 && timer < 28500)
@@ -192,8 +190,10 @@ namespace DiamondInTheWater.Screens
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
                         game.Width / 2, 0, 10, 10), 5000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
             else if (timer > 32000 && timer < 46500)
@@ -221,11 +221,13 @@ namespace DiamondInTheWater.Screens
             {
                 state = MinigameState.SUPPLY_DEMAND;
 
-                if (spawnTimer > 100)
+                if (spawnTimer > 200)
                 {
                     spawnTimer = 0;
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
             else if (timer > 82000 && timer < 88500)
@@ -238,9 +240,12 @@ namespace DiamondInTheWater.Screens
                     // recession/depression
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
                         game.Width / 2, 0, 10, 10), 5000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width - 300, game.Height * 3 / 4 + 300, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width - 300, game.Height * 3 / 4 + 300, 10, 10), 10000));
                 }
             }
             else if (timer >= 88500 && timer < 96000)
@@ -252,9 +257,12 @@ namespace DiamondInTheWater.Screens
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
                         game.Width / 2, 0, 10, 10), 5000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width + 200, game.Height * 3 / 4 - 100, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width + 200, game.Height * 3 / 4 - 100, 10, 10), 10000));
                 }
             }
             else if (timer >= 96000 && timer < 103000)
@@ -265,9 +273,12 @@ namespace DiamondInTheWater.Screens
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
                         game.Width / 2, 0, 10, 10), 5000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(-200, game.Height * 3 / 4 - 200, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        -200, game.Height * 3 / 4 - 200, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
             else if (timer > 103000 && timer < 112000)
@@ -278,9 +289,12 @@ namespace DiamondInTheWater.Screens
                     spawnTimer = 0;
                     projectiles.Add(new LRASProjectile(blank, new Rectangle(
                         game.Width / 2, 0, 10, 10), 5000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(0, game.Height * 3 / 4, 10, 10), 10000));
-                    projectiles.Add(new ASProjectile(blank, new Rectangle(200, game.Height * 3 / 4 + 200, 10, 10), 10000));
-                    projectiles.Add(new ADProjectile(blank, new Rectangle(game.Width, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        0, game.Height * 3 / 4, 10, 10), 10000));
+                    projectiles.Add(new ASProjectile(blank, new Rectangle(
+                        200, game.Height * 3 / 4 + 200, 10, 10), 10000));
+                    projectiles.Add(new ADProjectile(blank, new Rectangle(
+                        game.Width, game.Height * 3 / 4, 10, 10), 10000));
                 }
             }
             else if (timer > 114000 && timer < 124000)
@@ -380,14 +394,16 @@ namespace DiamondInTheWater.Screens
                         boss.Draw(spriteBatch);
                         break;
                 }
-                Vector2 position = new Vector2(game.Width - font.MeasureString(text).X - 32, game.Height - font.MeasureString(text).Y - 32);
+                Vector2 position = new Vector2(game.Width - font.MeasureString(text).X - 32, 
+                    game.Height - font.MeasureString(text).Y - 32);
                 spriteBatch.DrawString(font, text, position + new Vector2(-2, 2), Color.Black * 0.6f);
                 spriteBatch.DrawString(font, text, position, Color.White);
             }
             else if (state == MinigameState.BEGIN)
             {
                 text = "Bonus Minigame!";
-                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, game.Height / 2 - font.MeasureString(text).Y / 2);
+                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, 
+                    game.Height / 2 - font.MeasureString(text).Y / 2);
 
                 spriteBatch.DrawString(font, text, position + new Vector2(-3, 3), Color.Black * 0.6f);
                 spriteBatch.DrawString(font, text, position, Color.White);
@@ -395,7 +411,8 @@ namespace DiamondInTheWater.Screens
             else if (state == MinigameState.END)
             {
                 text = "You win! Thanks for playing!";
-                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2, game.Height / 2 - font.MeasureString(text).Y / 2);
+                Vector2 position = new Vector2(game.Width / 2 - font.MeasureString(text).X / 2,
+                    game.Height / 2 - font.MeasureString(text).Y / 2);
 
                 spriteBatch.DrawString(font, text, position + new Vector2(-3, 3), Color.Black * 0.6f);
                 spriteBatch.DrawString(font, text, position, Color.White);
@@ -405,13 +422,17 @@ namespace DiamondInTheWater.Screens
             int height = money.Height * 2;
             for (int i = 0; i < player.Health; i++)
             {
-                spriteBatch.Draw(money, new Rectangle(16 + i * (width + 16), game.Height - height - 16, width, height), Color.White);
+                spriteBatch.Draw(money, new Rectangle(16 + i * (width + 16),
+                    game.Height - height - 16, width, height), Color.White);
             }
 
             float snW = font.MeasureString(songName).X;
-            spriteBatch.DrawString(font, "Made by Spencer Chang", new Vector2(8, 8), Color.White * 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
-            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW * 0.7f - 10, 10), Color.Black* 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
-            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW * 0.7f - 8, 8), Color.White * 0.9f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, "Made by Spencer Chang", new Vector2(8, 8), 
+                Color.White * 0.3f, 0f, Vector2.Zero, 0.7f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW *
+                0.8f - 10, 10), Color.Black* 0.3f, 0f, Vector2.Zero, 0.8f, SpriteEffects.None, 0f);
+            spriteBatch.DrawString(font, songName, new Vector2(game.Width - snW * 
+                0.8f - 8, 8), Color.White * 0.9f, 0f, Vector2.Zero, 0.8f, SpriteEffects.None, 0f);
             spriteBatch.End();
         }
     }

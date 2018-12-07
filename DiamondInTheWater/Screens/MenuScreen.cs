@@ -17,11 +17,20 @@ namespace DiamondInTheWater.Screens
         private UIButton start, load, minigame;
         private Texture2D texture, blank;
         private Game1 game;
+
+        /// <summary>
+        /// Creates a new instance of the <c>MenuScreen</c>.
+        /// </summary>
+        /// <param name="game"></param>
         public MenuScreen(Game1 game)
         {
             this.game = game;
         }
 
+        /// <summary>
+        /// Draws the <c>MenuScreen</c> to the screen.
+        /// </summary>
+        /// <param name="spriteBatch"></param>
         public override void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
@@ -32,31 +41,42 @@ namespace DiamondInTheWater.Screens
             spriteBatch.End();
         }
 
+        /// <summary>
+        /// Initializes the <c>MenuScreen</c>.
+        /// </summary>
+        /// <param name="Content"></param>
         public override void Initialize(ContentManager Content)
         {
             texture = Content.Load<Texture2D>("Menu");
             blank = Content.Load<Texture2D>("blank");
-            start = new UIButton();
-            start.Font = Content.Load<SpriteFont>("largeFont");
-            start.Texture = blank;
-            start.Text = "Start";
-            start.Size = new Point(240, 70);
-            start.Position = new Point(game.Width / 2 - 120, game.Height / 2 + 72);
-            start.Background = Color.DimGray * 0.95f;
+            start = new UIButton
+            {
+                Font = Content.Load<SpriteFont>("largeFont"),
+                Texture = blank,
+                Text = "Start",
+                Size = new Point(240, 70),
+                Position = new Point(game.Width / 2 - 120, game.Height / 2 + 72),
+                Background = Color.DimGray * 0.95f
+            };
             start.OnClick += onClick;
-            load = new UIButton();
-            load.Font = Content.Load<SpriteFont>("largeFont");
-            load.Size = new Point(240, 70);
-            load.Position = new Point(game.Width / 2 - 120, game.Height / 2 + 172);
-            load.Background = Color.DimGray * 0.95f;
+            load = new UIButton
+            {
+                Font = Content.Load<SpriteFont>("largeFont"),
+                Size = new Point(240, 70),
+                Position = new Point(game.Width / 2 - 120, game.Height / 2 + 172),
+                Background = Color.DimGray * 0.95f
+            };
             load.OnClick += onClick;
             load.Text = "Load";
             load.Texture = blank;
-            minigame = new UIButton();
-            minigame.Font = Content.Load<SpriteFont>("largeFont");
-            minigame.Size = new Point(240, 70);
-            minigame.Position = new Point(game.Width / 2 - 120, game.Height / 2 + 272);
-            minigame.Background = Color.DimGray * 0.95f;
+            minigame = new UIButton
+            {
+                Font = Content.Load<SpriteFont>("largeFont"),
+                Size = new Point(240, 70),
+                Position = new Point(game.Width / 2 - 120, game.Height / 2 + 272),
+                Background = Color.DimGray * 0.95f,
+                Foreground = Color.Yellow * 0.95f,
+            };
             minigame.OnClick += onClick;
             minigame.Text = "Bonus";
             minigame.Texture = blank;

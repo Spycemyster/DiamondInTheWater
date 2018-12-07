@@ -132,7 +132,6 @@
     <Content Include="Content\Sun.png" />
     <Content Include="Content\Tool.png" />
     <Content Include="Content\ToolIcon.png" />
-    <Content Include="Content\Truck.png" />
     <Content Include="Content\TruckIcon.png" />
     <Content Include="Content\M1.mp3" />
     <Content Include="Content\Up.png" />

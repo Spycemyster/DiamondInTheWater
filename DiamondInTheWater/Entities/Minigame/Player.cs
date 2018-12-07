@@ -16,6 +16,10 @@ namespace DiamondInTheWater.Entities.Minigame
         private const float SCALE = 0.4f;
         private const float MOVE_SPEED = 6;
         private Texture2D texture0, texture1, blank;
+
+        /// <summary>
+        /// The amount of health bars to be shown to the player.
+        /// </summary>
         public int Health
         {
             get { return (int)Math.Ceiling(health / 2); }
@@ -25,13 +29,22 @@ namespace DiamondInTheWater.Entities.Minigame
         private List<Projectile> projectiles;
         private float hurtTimer;
 
+        /// <summary>
+        /// Creates a new instance of the <c>Player</c>.
+        /// </summary>
+        /// <param name="projectiles"></param>
         public Player(List<Projectile> projectiles)
         {
-            health = 20;
+            health = 16;
             this.projectiles = projectiles;
             Position = new Vector2(Game1.WIDTH / 2, Game1.HEIGHT - 200);
         }
 
+        /// <summary>
+        /// Returns the part of the <c>Player</c> that collides with entities in the game world.
+        /// </summary>
+        /// <param name="safe"></param>
+        /// <returns></returns>
         public Rectangle GetCollisionRectangle(int safe)
         {
             Rectangle dr = GetDrawRectangle();
@@ -119,7 +132,7 @@ namespace DiamondInTheWater.Entities.Minigame
             for (int i = 0; i < projectiles.Count; i++)
             {
                 if (!(projectiles[i] is FriendlyProjectile)
-                    && projectiles[i].GetCollisionRectangle().Intersects(GetCollisionRectangle(24)))
+                    && projectiles[i].GetCollisionRectangle().Intersects(GetCollisionRectangle(30)))
                 {
                     Hurt();
                     projectiles.RemoveAt(i--);

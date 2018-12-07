@@ -37,6 +37,7 @@ namespace DiamondInTheWater
         private List<Factory> factories;
         private List<House> houses;
         private List<Person> persons;
+        private List<Truck> trucks;
         private Random rand;
         private Texture2D islandTexture, blank, diamond;
         private Rectangle islandRectangle, worldBounds;
@@ -56,6 +57,7 @@ namespace DiamondInTheWater
             rand = new Random();
             factories = new List<Factory>();
             houses = new List<House>();
+            trucks = new List<Truck>();
 
             // Add different countries to TRADE with
             nations = new Nation[3];
@@ -193,6 +195,14 @@ namespace DiamondInTheWater
                 p.Initialize(Content);
                 persons.Add(p);
             }
+            for (int i = 0; i < (int)n.Trucks; i++)
+            {
+                Truck t = new Truck(worldBounds, rand);
+                t.Position = new Vector2(rand.Next(worldBounds.X, worldBounds.X + worldBounds.Width),
+                    rand.Next(worldBounds.Y, worldBounds.Y + worldBounds.Height));
+                t.Initialize(Content);
+                trucks.Add(t);
+            }
             for (int i = 0; i < Math.Ceiling(n.Population / 4f); i++)
             {
                 AddHouse();
@@ -204,6 +214,8 @@ namespace DiamondInTheWater
             Nation n = GetPlayer();
             foreach (Person p in persons)
                 p.Update(gameTime);
+            foreach (Truck t in trucks)
+                t.Update(gameTime);
 
             while ((int)(n.Population / 4.2f) >= houses.Count)
                 AddHouse();
@@ -211,8 +223,24 @@ namespace DiamondInTheWater
             while ((int)(n.Population) >= persons.Count)
                 AddPerson();
 
+            while ((int)(n.Trucks) > trucks.Count)
+                AddTruck();
+
             while ((int)n.Factories > factories.Count)
                 AddFactory();
+        }
+
+        private void AddTruck()
+        {
+            Vector2 position = getRandomPositionWithinBounds();
+
+            Truck t = new Truck(worldBounds, rand)
+            {
+                Position = new Vector2(rand.Next(worldBounds.X, worldBounds.X + worldBounds.Width),
+                rand.Next(worldBounds.Y, worldBounds.Y + worldBounds.Height))
+            };
+            t.Initialize(Content);
+            trucks.Add(t);
         }
 
         private void AddPerson()
@@ -278,6 +306,11 @@ namespace DiamondInTheWater
             foreach (Factory f in factories)
             {
                 f.Draw(spriteBatch);
+            }
+
+            foreach (Truck t in trucks)
+            {
+                t.Draw(spriteBatch);
             }
 
             foreach (House h in houses)
